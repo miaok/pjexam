@@ -498,7 +498,7 @@ const App: React.FC = () => {
             <div className="quiz-layout">
                 <div className="main-content">
                     {gameState === 'active' && flaggedQuestions.size > 0 && (
-                        <p className="flagged-info">{flaggedQuestions.size} question(s) flagged for review</p>
+                        <p className="flagged-info">{flaggedQuestions.size}题答案待定</p>
                     )}
                     <div className="question-meta">
                         <p className="question-header">
