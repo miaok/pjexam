@@ -1,0 +1,6 @@
+{
+  "name": "Advanced Quiz App",
+  "description": "A quiz app with a right-side answer card and support for single-choice, multiple-choice, and true/false questions.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
