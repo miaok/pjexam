@@ -4,7 +4,7 @@ import { localQuestions, Question, QuestionType } from './questions.ts';
 import { baijiuData, BaijiuSample } from './baijiu.ts';
 
 type GameState = 'idle' | 'active' | 'finished';
-type QuizMode = 'practice' | 'exam' | 'blind';
+type QuizMode = 'practice' | 'exam' | 'blind' | 'stats';
 
 const EXAM_DURATION_MINUTES = 15;
 
@@ -366,7 +366,17 @@ const App: React.FC = () => {
     setScore(finalScore);
     setGameState('finished');
     setTimeLeft(null);
-  }, [questions, userAnswers]);
+    // 新增：写入考试记录
+    if (quizMode === 'exam') {
+      const used = (EXAM_DURATION_MINUTES * 60) - (timeLeft ?? 0);
+      addExamRecord({
+        score: finalScore,
+        total: questions.length,
+        duration: used,
+        timestamp: Date.now(),
+      });
+    }
+  }, [questions, userAnswers, quizMode, timeLeft]);
   
   useEffect(() => {
     if (gameState === 'active' && quizMode === 'exam' && timeLeft !== null && timeLeft <= 0) {
@@ -519,6 +529,35 @@ const App: React.FC = () => {
             }
         } else { // "Confirm" button logic
             setIsBaijiuAnswerConfirmed(true);
+            // 统计：品鉴题每次确认时更新统计
+            const currentSample = baijiuQuestions[currentBaijiuIndex];
+            const key = getQuestionKey({
+                question: currentSample.酒样名称,
+                options: [
+                    baijiuUserAnswer.香型,
+                    baijiuUserAnswer.酒度,
+                    baijiuUserAnswer.总分,
+                    baijiuUserAnswer.设备.join(','),
+                    baijiuUserAnswer.发酵剂.join(',')
+                ]
+            });
+            // 判断是否答错（任一字段错误即为错）
+            let isWrong = false;
+            if (baijiuUserAnswer.香型 !== currentSample.香型) isWrong = true;
+            if (baijiuUserAnswer.酒度 !== currentSample.酒度) isWrong = true;
+            // 总分容差0.4
+            const userScore = parseFloat(baijiuUserAnswer.总分);
+            const correctScore = parseFloat(currentSample.总分);
+            if (Math.abs(userScore - correctScore) > 0.4) isWrong = true;
+            // 设备
+            const userEquip = new Set(baijiuUserAnswer.设备);
+            const correctEquip = new Set((currentSample.设备 as string).split(',').map(s => s.trim()));
+            if (userEquip.size !== correctEquip.size || [...userEquip].some(x => !correctEquip.has(x))) isWrong = true;
+            // 发酵剂
+            const userAgent = new Set(baijiuUserAnswer.发酵剂);
+            const correctAgent = new Set((currentSample.发酵剂 as string).split(',').map(s => s.trim()));
+            if (userAgent.size !== correctAgent.size || [...userAgent].some(x => !correctAgent.has(x))) isWrong = true;
+            updateStats(key, isWrong);
         }
     };
     
@@ -676,7 +715,15 @@ const App: React.FC = () => {
     // eslint-disable-next-line
   }, [reviewingWrongOnly, currentWrongQuestionDisplayIndex, wrongQuestionIndices]);
 
+  const handleBackFromStats = () => {
+    setQuizMode('exam');
+    setGameState('idle');
+  };
+
   const renderContent = () => {
+    if (quizMode === 'stats') {
+      return <StatsPage onBack={handleBackFromStats} />;
+    }
     switch (gameState) {
       case 'active':
         if (quizMode === 'blind') {
@@ -879,27 +926,37 @@ const App: React.FC = () => {
                     onClick={() => handleModeChange('exam')}
                     aria-pressed={quizMode === 'exam'}
                 >
-                    考试模式
+                    考试
                 </button>
                 <button
                     className={`mode-btn ${quizMode === 'practice' ? 'active' : ''}`}
                     onClick={() => handleModeChange('practice')}
                     aria-pressed={quizMode === 'practice'}
                 >
-                    练习模式
+                    练习
                 </button>
                 <button
                     className={`mode-btn ${quizMode === 'blind' ? 'active' : ''}`}
                     onClick={() => handleModeChange('blind')}
                     aria-pressed={quizMode === 'blind'}
                 >
-                    品鉴模式
+                    品鉴
+                </button>
+                <button
+                    className={`mode-btn ${quizMode === 'stats' ? 'active' : ''}`}
+                    onClick={() => handleModeChange('stats')}
+                    aria-pressed={quizMode === 'stats'}
+                >
+                    统计
                 </button>
             </div>
             
             {quizMode !== 'blind' ? (
                 <>
-                    <p>自定义题型数量及模式，开始学习吧！</p>
+                    <p>
+                        {quizMode === 'exam' && '卷随机动，分由心定'}
+                        {quizMode === 'practice' && '先立其大，后破其微'}
+                    </p>
                     <div className="settings-container">
                         <div className="settings-grid">
                             {sortedTypes.map(type => (
@@ -925,7 +982,7 @@ const App: React.FC = () => {
                                    checked={shuffleOptions}
                                    onChange={(e) => setShuffleOptions(e.target.checked)}
                                />
-                               <label htmlFor="shuffle">乱序选项</label>
+                               <label htmlFor="shuffle">选项乱序</label>
                            </div>
                             <div className="setting-item-checkbox">
                                <input
@@ -934,13 +991,13 @@ const App: React.FC = () => {
                                    checked={isRapidMode}
                                    onChange={(e) => setIsRapidMode(e.target.checked)}
                                />
-                               <label htmlFor="rapid">极速模式</label>
+                               <label htmlFor="rapid">极速切题</label>
                            </div>
                        </div>
                     </div>
                 </>
             ) : (
-                <p>随机抽取酒样进行品鉴，测试你的专业知识。</p>
+                <p>品酒如诗，味觉如画</p>
             )}
 
             <div className="settings-checkbox-container" style={{justifyContent: 'center'}}>
@@ -1098,3 +1155,120 @@ function updateStats(key: string, isWrong: boolean) {
 function clearStats() {
     localStorage.removeItem(STATS_KEY);
 }
+
+// ========== 考试记录本地存取 ==========
+const EXAM_RECORDS_KEY = 'pjexam-exam-records-v1';
+
+type ExamRecord = {
+  score: number;
+  total: number;
+  duration: number; // 秒
+  timestamp: number;
+};
+
+function getExamRecords(): ExamRecord[] {
+  try {
+    const raw = localStorage.getItem(EXAM_RECORDS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function addExamRecord(record: ExamRecord) {
+  const records = getExamRecords();
+  records.unshift(record);
+  if (records.length > 10) records.length = 10;
+  localStorage.setItem(EXAM_RECORDS_KEY, JSON.stringify(records));
+}
+
+// ========== 统计页组件 ==========
+type StatsPageProps = { onBack: () => void };
+type StatQuestion = Question & { total: number; wrong: number };
+const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {
+  // 题目统计
+  const stats = getStats();
+  // 题型分组
+  const single: StatQuestion[] = [];
+  const multiple: StatQuestion[] = [];
+  const boolean: StatQuestion[] = [];
+  // 题库遍历
+  localQuestions.forEach(q => {
+    const key = getQuestionKey(q);
+    const s = stats[key] || { total: 0, wrong: 0 };
+    // 只统计考试模式下做过的题，且未做题（total为0）不计入
+    if (s.total > 0) {
+      if (q.type === 'single') single.push({ ...q, ...s });
+      else if (q.type === 'multiple') multiple.push({ ...q, ...s });
+      else if (q.type === 'boolean') boolean.push({ ...q, ...s });
+    }
+  });
+  // 排序取前10
+  const top10 = (arr: { wrong: number }[]) => arr.filter(x => x.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 10);
+  // 考试记录
+  const examRecords = getExamRecords();
+  // 时间格式化
+  const fmt = (t: number) => {
+    const d = new Date(t);
+    return d.toLocaleString();
+  };
+  const fmtSec = (s: number) => `${Math.floor(s/60)}分${s%60}秒`;
+
+  // 手风琴展开状态
+  const [openType, setOpenType] = React.useState<'single'|'multiple'|'boolean'|null>('single');
+  const accordionList = [
+    { type: 'single', label: '单选错题TOP10', data: top10(single) },
+    { type: 'multiple', label: '多选错题TOP10', data: top10(multiple) },
+    { type: 'boolean', label: '判断错题TOP10', data: top10(boolean) },
+  ];
+
+  return (
+    <div className="stats-container">
+      
+      <button className="action-btn" style={{marginBottom: '0.75rem'}} onClick={onBack}>返回首页</button>
+      <div className="stats-section">
+        <h2>考试记录（最新10次）</h2>
+        {examRecords.length === 0 ? <p>暂无数据</p> : (
+          <table className="stats-table">
+            <thead><tr><th>分数</th><th>总题数</th><th>用时</th><th>考试时间</th></tr></thead>
+            <tbody>
+              {examRecords.map((r, i) => (
+                <tr key={i}>
+                  <td>{r.score}</td>
+                  <td>{r.total}</td>
+                  <td>{fmtSec(r.duration)}</td>
+                  <td>{fmt(r.timestamp)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="stats-section-grid" style={{flexDirection: 'column', gap: '1.5rem'}}>
+        {accordionList.map(({type, label, data}) => (
+          <div className="stats-section" key={type} style={{paddingBottom: 0}}>
+            <div
+              className={`accordion-header${openType === type ? ' open' : ''}`}
+              style={{cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}
+              onClick={() => setOpenType(openType === type ? null : type as typeof openType)}
+            >
+              <h2 style={{margin: 0, fontSize: '1.1rem'}}>{label}</h2>
+              <span style={{fontSize: '1.5rem', transition: 'transform 0.2s', transform: openType === type ? 'rotate(90deg)' : 'rotate(0deg)'}}>▶</span>
+            </div>
+            <div className="accordion-content" style={{display: openType === type ? 'block' : 'none', marginTop: '0.5rem'}}>
+              {data.length === 0 ? <p>暂无数据</p> : data.map((q, i) => (
+                <div className="stats-card" key={i}>
+                  <div className="stats-q">{q.question}</div>
+                  <div className="stats-opts">{q.options?.join(' / ')}</div>
+                  <div className="stats-ans">正确答案: {Array.isArray(q.answer) ? q.answer.join(',') : q.answer}</div>
+                  <div className="stats-wrong">错题次数: {q.wrong} / 总做题: {q.total}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
