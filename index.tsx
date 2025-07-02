@@ -287,6 +287,7 @@ const App: React.FC = () => {
         return;
     }
 
+    const stats = getStats();
     const groupedQuestions = localQuestions.reduce((acc, q) => {
         if (!acc[q.type]) acc[q.type] = [];
         acc[q.type].push(q);
@@ -296,19 +297,26 @@ const App: React.FC = () => {
     let selectedQuestions: Question[] = [];
     (Object.keys(groupedQuestions) as QuestionType[]).forEach(type => {
         const count = Math.min(questionCounts[type], groupedQuestions[type]?.length || 0);
-        const shuffledGroup = shuffleArray(groupedQuestions[type]);
-        selectedQuestions.push(...shuffledGroup.slice(0, count));
+        let group = groupedQuestions[type].slice();
+        // 先按统计排序
+        group.sort((a, b) => {
+            const ka = getQuestionKey(a);
+            const kb = getQuestionKey(b);
+            const sa = stats[ka] || { total: 0, wrong: 0 };
+            const sb = stats[kb] || { total: 0, wrong: 0 };
+            if (sa.total !== sb.total) return sa.total - sb.total;
+            return sb.wrong - sa.wrong;
+        });
+        // 只取前count个
+        let chosen = group.slice(0, count);
+        // 乱序选项
+        if (shuffleOptions) {
+            chosen = chosen.map(q => ({ ...q, options: shuffleArray(q.options) }));
+        }
+        selectedQuestions.push(...chosen);
     });
 
-    if (shuffleOptions) {
-        selectedQuestions = selectedQuestions.map(q => ({
-            ...q,
-            options: shuffleArray(q.options),
-        }));
-    }
-    
     const questionData = selectedQuestions.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
-    
     setQuestions(questionData);
     setUserAnswers(new Array(questionData.length).fill(null));
     setCurrentQuestionIndex(0);
@@ -336,14 +344,24 @@ const App: React.FC = () => {
     const newConfirmed = [...confirmedAnswers];
     newConfirmed[currentQuestionIndex] = true;
     setConfirmedAnswers(newConfirmed);
+    // 统计：练习模式每次确认只更新当前题
+    const q = questions[currentQuestionIndex];
+    const userAns = userAnswers[currentQuestionIndex];
+    const key = getQuestionKey(q);
+    const isWrong = !isCorrectUtil(q, userAns);
+    updateStats(key, isWrong);
   };
   
   const finishQuiz = useCallback(() => {
     let finalScore = 0;
+    // 统计：考试模式结束时批量更新所有题
     questions.forEach((q, i) => {
         if (isCorrectUtil(q, userAnswers[i])) {
             finalScore++;
         }
+        const key = getQuestionKey(q);
+        const isWrong = !isCorrectUtil(q, userAnswers[i]);
+        updateStats(key, isWrong);
     });
     setScore(finalScore);
     setGameState('finished');
@@ -406,6 +424,7 @@ const App: React.FC = () => {
   };
 
   const playAgain = () => {
+    clearProgress();
     setGameState('idle');
     setQuestions([]);
     setUserAnswers([]);
@@ -943,9 +962,139 @@ const App: React.FC = () => {
     }
   };
 
+  const hasRestoredRef = useRef(false);
+
+  // 首次加载自动恢复进度
+  useEffect(() => {
+    if (hasRestoredRef.current) return;
+    const saved = loadProgress();
+    if (saved) {
+      setGameState(saved.gameState ?? 'idle');
+      setQuizMode(saved.quizMode ?? 'exam');
+      setQuestions(saved.questions ?? []);
+      setCurrentQuestionIndex(saved.currentQuestionIndex ?? 0);
+      setUserAnswers(saved.userAnswers ?? []);
+      setScore(saved.score ?? 0);
+      setIsCurrentConfirmed(saved.isCurrentConfirmed ?? false);
+      setConfirmedAnswers(saved.confirmedAnswers ?? []);
+      setIsRapidMode(saved.isRapidMode ?? true);
+      setTimeLeft(saved.timeLeft ?? null);
+      setReviewingWrongOnly(saved.reviewingWrongOnly ?? false);
+      setWrongQuestionIndices(saved.wrongQuestionIndices ?? []);
+      setCurrentWrongQuestionDisplayIndex(saved.currentWrongQuestionDisplayIndex ?? 0);
+      setFlaggedQuestions(saved.flaggedQuestions ?? new Set());
+      setIsDarkMode(saved.isDarkMode ?? false);
+      setBaijiuQuestions(saved.baijiuQuestions ?? []);
+      setCurrentBaijiuIndex(saved.currentBaijiuIndex ?? 0);
+      setBaijiuUserAnswer(saved.baijiuUserAnswer ?? initialBaijiuAnswer);
+      setIsBaijiuAnswerConfirmed(saved.isBaijiuAnswerConfirmed ?? false);
+      setQuestionCounts(saved.questionCounts ?? {
+        boolean: Math.min(30, maxCounts.boolean || 0),
+        single: Math.min(30, maxCounts.single || 0),
+        multiple: Math.min(40, maxCounts.multiple || 0),
+      });
+      setShuffleOptions(saved.shuffleOptions ?? true);
+    }
+    hasRestoredRef.current = true;
+  }, []);
+
+  // 自动保存进度
+  useEffect(() => {
+    // 只在已恢复后才保存，避免初始空状态覆盖
+    if (!hasRestoredRef.current) return;
+    const progress = {
+      gameState,
+      quizMode,
+      questions,
+      currentQuestionIndex,
+      userAnswers,
+      score,
+      isCurrentConfirmed,
+      confirmedAnswers,
+      isRapidMode,
+      timeLeft,
+      reviewingWrongOnly,
+      wrongQuestionIndices,
+      currentWrongQuestionDisplayIndex,
+      flaggedQuestions: Array.from(flaggedQuestions),
+      isDarkMode,
+      baijiuQuestions,
+      currentBaijiuIndex,
+      baijiuUserAnswer,
+      isBaijiuAnswerConfirmed,
+      questionCounts,
+      shuffleOptions,
+    };
+    saveProgress(progress);
+  }, [gameState, quizMode, questions, currentQuestionIndex, userAnswers, score, isCurrentConfirmed, confirmedAnswers, isRapidMode, timeLeft, reviewingWrongOnly, wrongQuestionIndices, currentWrongQuestionDisplayIndex, flaggedQuestions, isDarkMode, baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, questionCounts, shuffleOptions]);
+
   return <div className="quiz-container">{renderContent()}</div>;
 };
 
 const container = document.getElementById('root');
 const root = createRoot(container!);
 root.render(<App />);
+
+// ========== 进度持久化工具 ==========
+const STORAGE_KEY = 'pjexam-progress-v1';
+
+function saveProgress(progress: any) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch (e) {
+        // ignore
+    }
+}
+
+function loadProgress(): any | null {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        // 反序列化 Set
+        if (data.flaggedQuestions) {
+            data.flaggedQuestions = new Set(data.flaggedQuestions);
+        }
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearProgress() {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+        // ignore
+    }
+}
+
+// ========== 题目唯一key和统计数据工具 ==========
+const STATS_KEY = 'pjexam-stats-v1';
+
+function getQuestionKey(q: { question: string; options: string[] }) {
+    // 简单hash：题干+所有选项拼接
+    return q.question + '||' + q.options.join('|');
+}
+
+function getStats(): Record<string, { total: number; wrong: number }> {
+    try {
+        const raw = localStorage.getItem(STATS_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw);
+    } catch {
+        return {};
+    }
+}
+
+function updateStats(key: string, isWrong: boolean) {
+    const stats = getStats();
+    if (!stats[key]) stats[key] = { total: 0, wrong: 0 };
+    stats[key].total += 1;
+    if (isWrong) stats[key].wrong += 1;
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+}
+
+function clearStats() {
+    localStorage.removeItem(STATS_KEY);
+}
