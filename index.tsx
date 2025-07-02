@@ -625,7 +625,7 @@ const App: React.FC = () => {
                     })}
                 </div>
     
-                <button className="action-btn" onClick={handleBaijiuAction} style={{marginTop: '2rem'}}>
+                <button className="action-btn" onClick={handleBaijiuAction} style={{marginTop: '1rem'}}>
                     {isBaijiuAnswerConfirmed ? (isFinished ? '完成' : '下一题') : '确认答案'}
                 </button>
             </div>
@@ -837,8 +837,8 @@ const App: React.FC = () => {
                         confirmedAnswers={confirmedAnswers}
                         flaggedQuestions={flaggedQuestions}
                     />
-                    {/* 结束考试/练习按钮，未结束时显示 */}
-                    {!isFinished && (
+                    {/* 结束考试/练习按钮，未结束且在最后一题时显示 */}
+                    {!isFinished && currentQuestionIndex === questions.length - 1 && (
                         <button className="finish-btn" onClick={finishQuiz}>
                           {isPracticeMode ? '结束练习' : '结束考试'}
                         </button>
@@ -895,7 +895,6 @@ const App: React.FC = () => {
                                         max={maxCounts[type]}
                                         aria-label={`Number of ${getQuestionTypeLabel(type)} questions`}
                                     />
-                                    <span className="setting-max-text">(Max: {maxCounts[type]})</span>
                                 </div>
                             ))}
                         </div>

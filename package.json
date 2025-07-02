@@ -1,12 +1,13 @@
 {
   "homepage": "https://miaok.github.io/pjexam",
-  "name": "刷刷刷题",
+  "name": "practice",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite  --host",
     "build": "vite build --base=/pjexam/",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
