@@ -926,7 +926,7 @@ body {
         text-align: right;
     }
     .mode-selector-container {
-        flex-direction: column;
+        flex-direction: row;
         max-width: 320px;
     }
     .final-score-actions {
