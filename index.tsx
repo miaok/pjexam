@@ -190,6 +190,7 @@ const App: React.FC = () => {
   const [confirmedAnswers, setConfirmedAnswers] = useState<boolean[]>([]);
   const [isRapidMode, setIsRapidMode] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [examStartTimestamp, setExamStartTimestamp] = useState<number | null>(null);
   const [reviewingWrongOnly, setReviewingWrongOnly] = useState(false);
   const [wrongQuestionIndices, setWrongQuestionIndices] = useState<number[]>([]);
   const [currentWrongQuestionDisplayIndex, setCurrentWrongQuestionDisplayIndex] = useState(0);
@@ -339,8 +340,10 @@ const App: React.FC = () => {
     setConfirmedAnswers(new Array(questionData.length).fill(false));
     setFlaggedQuestions(new Set());
     if (quizMode === 'exam') {
+        setExamStartTimestamp(Date.now());
         setTimeLeft(EXAM_DURATION_MINUTES * 60);
     } else {
+        setExamStartTimestamp(null);
         setTimeLeft(null);
     }
   };
@@ -392,21 +395,21 @@ const App: React.FC = () => {
   }, [questions, userAnswers, quizMode, timeLeft]);
   
   useEffect(() => {
-    if (gameState === 'active' && quizMode === 'exam' && timeLeft !== null && timeLeft <= 0) {
-      finishQuiz();
-    }
-  }, [gameState, quizMode, timeLeft, finishQuiz]);
-
-  useEffect(() => {
-    if (gameState === 'active' && quizMode === 'exam' && timeLeft !== null && timeLeft > 0) {
-      const intervalId = setInterval(() => {
-        setTimeLeft(prevTime => (prevTime !== null ? prevTime - 1 : null));
-      }, 1000);
-
+    if (gameState === 'active' && quizMode === 'exam' && examStartTimestamp) {
+      const updateTime = () => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - examStartTimestamp) / 1000);
+        const left = EXAM_DURATION_MINUTES * 60 - elapsed;
+        setTimeLeft(left > 0 ? left : 0);
+        if (left <= 0) {
+          finishQuiz();
+        }
+      };
+      updateTime();
+      const intervalId = setInterval(updateTime, 1000);
       return () => clearInterval(intervalId);
     }
-  }, [gameState, quizMode, timeLeft !== null && timeLeft > 0]);
-
+  }, [gameState, quizMode, examStartTimestamp, finishQuiz]);
 
   const handleSelectAnswer = (option: string) => {
     const newAnswers = [...userAnswers];
@@ -453,11 +456,11 @@ const App: React.FC = () => {
     setUserAnswers([]);
     setConfirmedAnswers([]);
     setTimeLeft(null);
+    setExamStartTimestamp(null);
     setReviewingWrongOnly(false);
     setWrongQuestionIndices([]);
     setCurrentWrongQuestionDisplayIndex(0);
     setFlaggedQuestions(new Set());
-    // Reset blind mode states
     setBaijiuQuestions([]);
     setCurrentBaijiuIndex(0);
     setBaijiuUserAnswer(initialBaijiuAnswer);
@@ -1074,6 +1077,7 @@ const App: React.FC = () => {
       setConfirmedAnswers(saved.confirmedAnswers ?? []);
       setIsRapidMode(saved.isRapidMode ?? true);
       setTimeLeft(saved.timeLeft ?? null);
+      setExamStartTimestamp(saved.examStartTimestamp ?? null);
       setReviewingWrongOnly(saved.reviewingWrongOnly ?? false);
       setWrongQuestionIndices(saved.wrongQuestionIndices ?? []);
       setCurrentWrongQuestionDisplayIndex(saved.currentWrongQuestionDisplayIndex ?? 0);
@@ -1102,7 +1106,6 @@ const App: React.FC = () => {
 
   // 自动保存进度
   useEffect(() => {
-    // 只在已恢复后才保存，避免初始空状态覆盖
     if (!hasRestoredRef.current) return;
     const progress = {
       gameState,
@@ -1115,6 +1118,7 @@ const App: React.FC = () => {
       confirmedAnswers,
       isRapidMode,
       timeLeft,
+      examStartTimestamp,
       reviewingWrongOnly,
       wrongQuestionIndices,
       currentWrongQuestionDisplayIndex,
@@ -1129,7 +1133,7 @@ const App: React.FC = () => {
       baijiuFields,
     };
     saveProgress(progress);
-  }, [gameState, quizMode, questions, currentQuestionIndex, userAnswers, score, isCurrentConfirmed, confirmedAnswers, isRapidMode, timeLeft, reviewingWrongOnly, wrongQuestionIndices, currentWrongQuestionDisplayIndex, flaggedQuestions, isDarkMode, baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, questionCounts, shuffleOptions, baijiuFields]);
+  }, [gameState, quizMode, questions, currentQuestionIndex, userAnswers, score, isCurrentConfirmed, confirmedAnswers, isRapidMode, timeLeft, examStartTimestamp, reviewingWrongOnly, wrongQuestionIndices, currentWrongQuestionDisplayIndex, flaggedQuestions, isDarkMode, baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, questionCounts, shuffleOptions, baijiuFields]);
 
   return <div className="quiz-container">{renderContent()}</div>;
 };
