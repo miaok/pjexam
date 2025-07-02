@@ -1,3 +1,4 @@
+
 :root, [data-theme="light"] {
   --primary-color: #4f46e5;
   --primary-hover: #4338ca;
@@ -9,7 +10,7 @@
   --text-color: #1e293b;
   --subtle-text: #64748b;
   --border-color: #e2e8f0;
-  --flag-color: #f59e0b;
+  --flag-color: #f7ac2c;
 }
 
 [data-theme="dark"] {
@@ -79,13 +80,13 @@ body {
     padding: 0.5rem;
     border-radius: 0.75rem;
     margin: 0 auto 1rem;
-    max-width: 320px;
+    max-width: fit-content;
     transition: background-color 0.3s ease;
 }
 
 .mode-btn {
     flex: 1;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     font-size: 1rem;
     font-weight: 700;
     border: 2px solid transparent;
@@ -94,6 +95,7 @@ body {
     transition: all 0.2s ease-in-out;
     background-color: transparent;
     color: var(--subtle-text);
+    white-space: nowrap;
 }
 
 .mode-btn.active {
@@ -305,7 +307,7 @@ body {
   font-weight: 700;
   margin-bottom: 2rem;
   line-height: 1.4;
-  min-height: 6rem; /* Ensure consistent height */
+  min-height: 3rem; 
   text-align: left;
 }
 
@@ -334,7 +336,7 @@ body {
 }
 
 .option-btn:not(:disabled):hover {
-  border-color: var(--primary-color);
+  /* border-color: var(--primary-color); */
 }
 
 .option-btn.selected {
@@ -382,7 +384,7 @@ body {
     min-height: 50px; /* Reserve space for buttons to prevent layout shift */
 }
 
-.navigation-controls button {
+.navigation-controls button, .navigation-controls-exit-btn {
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     color: var(--text-color);
@@ -394,7 +396,8 @@ body {
     transition: all 0.2s ease;
 }
 
-.navigation-controls button:not(:disabled):hover {
+.navigation-controls button:not(:disabled):hover,
+.navigation-controls-exit-btn:not(:disabled):hover {
     background-color: var(--background-color);
     border-color: var(--subtle-text);
 }
@@ -760,6 +763,170 @@ body {
   background-color: var(--primary-light);
 }
 
+/* Blind Tasting Styles */
+.blind-tasting-container {
+    text-align: left;
+}
+
+.blind-tasting-container .action-btn {
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.blind-tasting-form {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.form-row label {
+    font-weight: 700;
+    color: var(--subtle-text);
+    text-align: right;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.blind-tasting-form select,
+.blind-tasting-form input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: border-color 0.2s;
+}
+
+.blind-tasting-form select:focus,
+.blind-tasting-form input:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.blind-tasting-form select:disabled,
+.blind-tasting-form input:disabled {
+    background-color: var(--background-color);
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.feedback-icon {
+    font-size: 1.25rem;
+    margin-left: 1rem;
+}
+
+.feedback-icon.correct {
+    color: var(--correct-color);
+}
+
+.feedback-icon.incorrect {
+    color: var(--incorrect-color);
+}
+
+.correct-answer {
+    color: var(--subtle-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.score-adjuster {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    width: 100%;
+}
+
+.score-adjuster span {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.5rem;
+    color: var(--text-color);
+}
+
+.score-adjuster button {
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.score-adjuster button:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+    color: white;
+}
+
+[data-theme="dark"] .score-adjuster button:hover:not(:disabled) {
+    color: var(--text-color);
+}
+
+.score-adjuster button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+.multi-select-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.multi-select-option {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 2px solid var(--border-color);
+    border-radius: 1rem;
+    cursor: pointer;
+    background-color: var(--background-color);
+    color: var(--subtle-text);
+    transition: all 0.2s ease;
+}
+
+.multi-select-option.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .multi-select-option.selected {
+  color: var(--text-color);
+}
+
+
+.multi-select-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 @media (max-width: 800px) {
     .quiz-layout {
         grid-template-columns: 1fr;
@@ -780,5 +947,27 @@ body {
     }
     .timer {
       font-size: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .form-row label {
+        text-align: left;
+        margin-bottom: 0.25rem;
+    }
+    .input-wrapper {
+       grid-column: 1 / -1;
+    }
+    .correct-answer {
+        grid-column: 1 / -1;
+        text-align: right;
+    }
+    .mode-selector-container {
+        flex-direction: column;
+        max-width: 320px;
     }
 }

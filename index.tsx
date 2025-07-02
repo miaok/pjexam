@@ -1,11 +1,24 @@
+
 import React, { useState, useMemo, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { localQuestions, Question, QuestionType } from './questions.ts';
+import { baijiuData, BaijiuSample } from './baijiu.ts';
 
 type GameState = 'idle' | 'active' | 'finished';
-type QuizMode = 'practice' | 'exam';
+type QuizMode = 'practice' | 'exam' | 'blind';
 
 const EXAM_DURATION_MINUTES = 15;
+
+type BaijiuUserAnswer = {
+    香型: string;
+    酒度: string;
+    总分: string;
+    设备: string[];
+    发酵剂: string[];
+};
+
+const initialBaijiuAnswer: BaijiuUserAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
+
 
 const getQuestionTypeLabel = (type: QuestionType): string => {
     switch (type) {
@@ -185,6 +198,31 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAnalysisVisible, setIsAnalysisVisible] = useState(false);
 
+  // Blind Tasting Mode State
+  const [baijiuQuestions, setBaijiuQuestions] = useState<BaijiuSample[]>([]);
+  const [currentBaijiuIndex, setCurrentBaijiuIndex] = useState(0);
+  const [baijiuUserAnswer, setBaijiuUserAnswer] = useState<BaijiuUserAnswer>(initialBaijiuAnswer);
+  const [isBaijiuAnswerConfirmed, setIsBaijiuAnswerConfirmed] = useState(false);
+
+  const baijiuOptions = useMemo(() => {
+    // Hardcoded and sorted options as requested by the user
+    const aromaOptions = [
+        '浓香型', '多粮浓香型', '清香型', '小曲清香型', '麸曲清香型', '大麸清香型', 
+        '酱香型', '米香型', '兼香型', '凤香型', '豉香型', '特香型', '芝麻香型', 
+        '董香型', '老白干型', '馥郁香型'
+    ];
+    const alcoholLevels = ['30', '42', '45', '50', '52', '53', '54', '55'];
+    const equipmentOptions = ['泥窖', '地缸', '石窖', '砖窖', '水泥窖', '瓷砖窖', '发酵罐', '陶罐'];
+    const agentOptions = ['大曲', '小曲', '麸曲', '酵母'];
+
+    return { 
+        香型: aromaOptions, 
+        酒度: alcoholLevels, 
+        设备: equipmentOptions, 
+        发酵剂: agentOptions 
+    };
+  }, []);
+
   useEffect(() => {
     document.body.dataset.theme = isDarkMode ? 'dark' : 'light';
   }, [isDarkMode]);
@@ -250,7 +288,7 @@ const App: React.FC = () => {
             single: Math.min(30, maxCounts.single || 0),
             multiple: Math.min(40, maxCounts.multiple || 0),
         });
-    } else { // practice mode
+    } else if (newMode === 'practice') { // practice mode
         setQuestionCounts({
             boolean: maxCounts.boolean || 0,
             single: maxCounts.single || 0,
@@ -269,6 +307,16 @@ const App: React.FC = () => {
   };
 
   const startQuiz = () => {
+    if (quizMode === 'blind') {
+        const shuffledData = shuffleArray(baijiuData);
+        setBaijiuQuestions(shuffledData);
+        setCurrentBaijiuIndex(0);
+        setBaijiuUserAnswer(initialBaijiuAnswer);
+        setIsBaijiuAnswerConfirmed(false);
+        setGameState('active');
+        return;
+    }
+
     const groupedQuestions = localQuestions.reduce((acc, q) => {
         if (!acc[q.type]) acc[q.type] = [];
         acc[q.type].push(q);
@@ -332,15 +380,12 @@ const App: React.FC = () => {
     setTimeLeft(null);
   }, [questions, userAnswers]);
   
-  // This effect handles finishing the quiz when time runs out.
   useEffect(() => {
     if (gameState === 'active' && quizMode === 'exam' && timeLeft !== null && timeLeft <= 0) {
       finishQuiz();
     }
   }, [gameState, quizMode, timeLeft, finishQuiz]);
 
-  // This effect manages the countdown interval. It's designed to not reset on every tick,
-  // which prevents the timer from stuttering during rapid UI updates (like switching questions).
   useEffect(() => {
     if (gameState === 'active' && quizMode === 'exam' && timeLeft !== null && timeLeft > 0) {
       const intervalId = setInterval(() => {
@@ -401,6 +446,11 @@ const App: React.FC = () => {
     setCurrentWrongQuestionDisplayIndex(0);
     setFlaggedQuestions(new Set());
     setIsAnalysisVisible(false);
+    // Reset blind mode states
+    setBaijiuQuestions([]);
+    setCurrentBaijiuIndex(0);
+    setBaijiuUserAnswer(initialBaijiuAnswer);
+    setIsBaijiuAnswerConfirmed(false);
   };
 
   const handleToggleFlag = useCallback(() => {
@@ -469,10 +519,184 @@ const App: React.FC = () => {
     }
   };
 
+    const handleBaijiuSelectChange = (field: '香型' | '酒度', value: string) => {
+        setBaijiuUserAnswer(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleBaijiuScoreAdjust = (direction: 'up' | 'down') => {
+        setBaijiuUserAnswer(prev => {
+            const currentScore = parseFloat(prev.总分);
+            const newScore = direction === 'up' ? currentScore + 0.2 : currentScore - 0.2;
+            return { ...prev, 总分: newScore.toFixed(1) };
+        });
+    };
+
+    const handleBaijiuMultiSelectChange = (field: '设备' | '发酵剂', value: string) => {
+        setBaijiuUserAnswer(prev => {
+            const currentSelection = prev[field];
+            const newSelection = currentSelection.includes(value)
+                ? currentSelection.filter(item => item !== value)
+                : [...currentSelection, value];
+            return { ...prev, [field]: newSelection };
+        });
+    };
+
+    const handleBaijiuAction = () => {
+        if (isBaijiuAnswerConfirmed) { // "Next" button logic
+            if (currentBaijiuIndex < baijiuQuestions.length - 1) {
+                setCurrentBaijiuIndex(prev => prev + 1);
+                setBaijiuUserAnswer(initialBaijiuAnswer);
+                setIsBaijiuAnswerConfirmed(false);
+            } else {
+                playAgain();
+            }
+        } else { // "Confirm" button logic
+            setIsBaijiuAnswerConfirmed(true);
+        }
+    };
+    
+    const renderBlindTastingQuiz = () => {
+        if (baijiuQuestions.length === 0) return null;
+        const currentSample = baijiuQuestions[currentBaijiuIndex];
+        const isFinished = currentBaijiuIndex === baijiuQuestions.length - 1 && isBaijiuAnswerConfirmed;
+    
+        const checkAnswer = (field: keyof BaijiuUserAnswer): 'correct' | 'incorrect' | 'unanswered' => {
+            if (!isBaijiuAnswerConfirmed) return 'unanswered';
+    
+            const userAnswer = baijiuUserAnswer[field];
+            const correctAnswerRaw = currentSample[field as keyof BaijiuSample];
+    
+            if (field === '总分') {
+                const userAnswerNum = parseFloat(userAnswer as string);
+                if (isNaN(userAnswerNum)) return 'incorrect';
+                const correctAnswerNum = correctAnswerRaw as number;
+                
+                // To avoid floating point inaccuracies (e.g., 92.4 - 92.0 being 0.4000000000000057),
+                // we convert the scores to integers by multiplying by 10 and rounding.
+                const userAnswerInt = Math.round(userAnswerNum * 10);
+                const correctAnswerInt = Math.round(correctAnswerNum * 10);
+                const toleranceInt = 4; // 0.4 * 10
+
+                return Math.abs(userAnswerInt - correctAnswerInt) <= toleranceInt ? 'correct' : 'incorrect';
+            }
+    
+            if (field === '设备' || field === '发酵剂') {
+                const userAnswerSet = new Set(userAnswer as string[]);
+                const correctAnswerSet = new Set((correctAnswerRaw as string).split(',').map(s => s.trim()));
+                if (userAnswerSet.size !== correctAnswerSet.size) return 'incorrect';
+                for (const item of userAnswerSet) {
+                    if (!correctAnswerSet.has(item)) return 'incorrect';
+                }
+                return 'correct';
+            }
+    
+            return userAnswer === (correctAnswerRaw as any).toString() ? 'correct' : 'incorrect';
+        };
+    
+        return (
+            <div className="blind-tasting-container">
+                <div className="question-meta">
+                    <p className="question-header">
+                        品鉴 {currentBaijiuIndex + 1} / {baijiuQuestions.length}
+                    </p>
+                     <button className="navigation-controls-exit-btn" onClick={playAgain}>
+                        退出
+                     </button>
+                </div>
+                
+                <h2 className="question-text">这一杯是“{currentSample.酒样名称}”</h2>
+                
+                <div className="blind-tasting-form">
+                    {(Object.keys(initialBaijiuAnswer) as Array<keyof BaijiuUserAnswer>).map(field => {
+                        let inputControl;
+                        if (field === '总分') {
+                            inputControl = (
+                                <div className="score-adjuster">
+                                    <button onClick={() => handleBaijiuScoreAdjust('down')} disabled={isBaijiuAnswerConfirmed}>-</button>
+                                    <span>{baijiuUserAnswer.总分}</span>
+                                    <button onClick={() => handleBaijiuScoreAdjust('up')} disabled={isBaijiuAnswerConfirmed}>+</button>
+                                </div>
+                            );
+                        } else if (field === '设备' || field === '发酵剂') {
+                            inputControl = (
+                                <div className="multi-select-container">
+                                    {baijiuOptions[field].map(opt => {
+                                        const isSelected = baijiuUserAnswer[field].includes(opt);
+                                        return (
+                                            <button 
+                                                key={opt}
+                                                className={`multi-select-option ${isSelected ? 'selected' : ''}`}
+                                                onClick={() => handleBaijiuMultiSelectChange(field, opt)}
+                                                disabled={isBaijiuAnswerConfirmed}
+                                            >
+                                                {opt}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            );
+                        } else {
+                            inputControl = (
+                                <select 
+                                    id={field} 
+                                    value={baijiuUserAnswer[field as '香型' | '酒度']} 
+                                    disabled={isBaijiuAnswerConfirmed} 
+                                    onChange={e => handleBaijiuSelectChange(field as '香型' | '酒度', e.target.value)}
+                                >
+                                    <option value="">请选择</option>
+                                    {baijiuOptions[field as '香型' | '酒度'].map(opt => <option key={opt} value={opt}>{opt}{field === '酒度' ? '°' : ''}</option>)}
+                                </select>
+                            );
+                        }
+
+                        let shouldShowCorrectAnswer = false;
+                        if (isBaijiuAnswerConfirmed) {
+                            const isFieldCorrect = checkAnswer(field) === 'correct';
+                            if (!isFieldCorrect) {
+                                shouldShowCorrectAnswer = true;
+                            } else if (field === '总分') {
+                                // For score, also show answer if correct but not an exact match
+                                const userAnswerNum = parseFloat(baijiuUserAnswer.总分);
+                                const correctAnswerNum = currentSample.总分;
+                                if (userAnswerNum !== correctAnswerNum) {
+                                    shouldShowCorrectAnswer = true;
+                                }
+                            }
+                        }
+
+                        return (
+                             <div className="form-row" key={field}>
+                                <label htmlFor={field}>{field}</label>
+                                <div className="input-wrapper">
+                                    {inputControl}
+                                    {isBaijiuAnswerConfirmed && <span className={`feedback-icon ${checkAnswer(field)}`}>{checkAnswer(field) === 'correct' ? '✔' : '✖'}</span>}
+                                </div>
+                                {shouldShowCorrectAnswer && <span className="correct-answer">答案: {currentSample[field as keyof BaijiuSample]}{field === '酒度' ? '°' : ''}</span>}
+                            </div>
+                        )
+                    })}
+                </div>
+    
+                <button className="action-btn" onClick={handleBaijiuAction} style={{marginTop: '2rem'}}>
+                    {isBaijiuAnswerConfirmed ? (isFinished ? '完成' : '下一题') : '确认答案'}
+                </button>
+            </div>
+        )
+    }
+
   const renderContent = () => {
     switch (gameState) {
       case 'active':
+        if (quizMode === 'blind') {
+            return renderBlindTastingQuiz();
+        }
+        // Fallthrough for original modes
       case 'finished':
+        if (quizMode === 'blind') {
+            // This state isn't really used for blind mode, redirect to start
+            playAgain();
+            return null;
+        }
         if (questions.length === 0) {
             return (
                 <div className="welcome-container">
@@ -596,7 +820,7 @@ const App: React.FC = () => {
 
                      {isFinished ? (
                          <div className="final-score-active">
-                            <h2>考试结束！得分：{score}/{questions.length}</h2>
+                            <h2>考试结束！总分：{score}/{questions.length}</h2>
                              {scoreAnalysis && scoreAnalysis.length > 0 && (
                                 <div className="score-analysis-container">
                                     <h3 
@@ -682,61 +906,76 @@ const App: React.FC = () => {
                 >
                     练习模式
                 </button>
+                <button
+                    className={`mode-btn ${quizMode === 'blind' ? 'active' : ''}`}
+                    onClick={() => handleModeChange('blind')}
+                    aria-pressed={quizMode === 'blind'}
+                >
+                    品鉴模式
+                </button>
             </div>
             
-            <p>自定义题型数量及模式，开始学习吧！</p>
-            
-            <div className="settings-container">
-
-                <div className="settings-grid">
-                    {sortedTypes.map(type => (
-                        <div className="setting-item" key={type}>
-                            <label htmlFor={`count-${type}`}>{getQuestionTypeLabel(type)}</label>
-                            <input
-                                type="number"
-                                id={`count-${type}`}
-                                value={questionCounts[type]}
-                                onChange={e => handleCountChange(type, e.target.value)}
-                                min="0"
-                                max={maxCounts[type]}
-                                aria-label={`Number of ${getQuestionTypeLabel(type)} questions`}
-                            />
-                            <span className="setting-max-text">(Max: {maxCounts[type]})</span>
+            {quizMode !== 'blind' ? (
+                <>
+                    <p>自定义题型数量及模式，开始学习吧！</p>
+                    <div className="settings-container">
+                        <div className="settings-grid">
+                            {sortedTypes.map(type => (
+                                <div className="setting-item" key={type}>
+                                    <label htmlFor={`count-${type}`}>{getQuestionTypeLabel(type)}</label>
+                                    <input
+                                        type="number"
+                                        id={`count-${type}`}
+                                        value={questionCounts[type]}
+                                        onChange={e => handleCountChange(type, e.target.value)}
+                                        min="0"
+                                        max={maxCounts[type]}
+                                        aria-label={`Number of ${getQuestionTypeLabel(type)} questions`}
+                                    />
+                                    <span className="setting-max-text">(Max: {maxCounts[type]})</span>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-                 <div className="settings-checkbox-container">
-                    <div className="setting-item-checkbox">
-                        <input
-                            type="checkbox"
-                            id="shuffle"
-                            checked={shuffleOptions}
-                            onChange={(e) => setShuffleOptions(e.target.checked)}
-                        />
-                        <label htmlFor="shuffle">乱序选项</label>
+                        <div className="settings-checkbox-container">
+                           <div className="setting-item-checkbox">
+                               <input
+                                   type="checkbox"
+                                   id="shuffle"
+                                   checked={shuffleOptions}
+                                   onChange={(e) => setShuffleOptions(e.target.checked)}
+                               />
+                               <label htmlFor="shuffle">乱序选项</label>
+                           </div>
+                            <div className="setting-item-checkbox">
+                               <input
+                                   type="checkbox"
+                                   id="rapid"
+                                   checked={isRapidMode}
+                                   onChange={(e) => setIsRapidMode(e.target.checked)}
+                               />
+                               <label htmlFor="rapid">极速模式</label>
+                           </div>
+                       </div>
                     </div>
-                     <div className="setting-item-checkbox">
-                        <input
-                            type="checkbox"
-                            id="rapid"
-                            checked={isRapidMode}
-                            onChange={(e) => setIsRapidMode(e.target.checked)}
-                        />
-                        <label htmlFor="rapid">极速模式</label>
-                    </div>
-                    <div className="setting-item-checkbox">
-                        <input
-                            type="checkbox"
-                            id="dark-mode"
-                            checked={isDarkMode}
-                            onChange={(e) => setIsDarkMode(e.target.checked)}
-                        />
-                        <label htmlFor="dark-mode">深色模式</label>
-                    </div>
+                </>
+            ) : (
+                <p>随机抽取酒样进行品鉴，测试你的专业知识。</p>
+            )}
+
+            <div className="settings-checkbox-container" style={{justifyContent: 'center', marginTop: '2rem'}}>
+                <div className="setting-item-checkbox">
+                    <input
+                        type="checkbox"
+                        id="dark-mode"
+                        checked={isDarkMode}
+                        onChange={(e) => setIsDarkMode(e.target.checked)}
+                    />
+                    <label htmlFor="dark-mode">深色模式</label>
                 </div>
             </div>
 
-            <button className="action-btn" onClick={startQuiz}>
+
+            <button className="action-btn" style={{marginTop: '1rem'}} onClick={startQuiz}>
               开始学习
             </button>
           </div>

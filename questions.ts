@@ -101,9 +101,9 @@ export const localQuestions: Question[] = [
   },
   {
       question: "双乙酰又名：____。",
-      options: ["2,3一丁二酮", "2,3一丁二醇", "3-羟基丁酮", "丙三醇"],
+      options: ["2,3-丁二酮", "2,3-丁二醇", "3-羟基丁酮", "丙三醇"],
       type: "single",
-      answer: "2,3一丁二酮"
+      answer: "2,3-丁二酮"
   },
   {
       question: "白酒对周边气味有极强的吸附力，若酒库卫生管理不善，容器上布满灰尘，____会被吸入酒内。",
@@ -287,9 +287,9 @@ export const localQuestions: Question[] = [
   },
   {
       question: "多元醇在白酒中呈甜味，其中丙三醇和____在白酒中起缓冲作用，使酒增加绵甜、回味和醇厚感。",
-      options: ["2.3-丁二醇", "甲醇", "己醇", "丁二醇"],
+      options: ["2,3-丁二醇", "甲醇", "己醇", "丁二醇"],
       type: "single",
-      answer: "2.3-丁二醇"
+      answer: "2,3-丁二醇"
   },
   {
       question: "在蒸馏过程中，有机酸聚积于____中，若想提高酒中酸量，则应降低摘酒酒度____。",
@@ -412,7 +412,7 @@ export const localQuestions: Question[] = [
       answer: "乙醛"
   },
   {
-      question: "淀粉糖化的第一阶段是淀粉的液化。所谓液化就是淀粉分子被а-淀粉酶分解为小片段____，淀粉的网状结构被破坏。",
+      question: "淀粉糖化的第一阶段是淀粉的液化。所谓液化就是淀粉分子被α-淀粉酶分解为小片段____，淀粉的网状结构被破坏。",
       options: ["果糖", "糊精", "糖", "葡萄糖"],
       type: "single",
       answer: "糊精"
@@ -767,9 +767,9 @@ export const localQuestions: Question[] = [
   },
   {
       question: "丁酸的分子式是____。",
-      options: ["CH3COOH", "CH3C00C2H5", "CH3(CH2)2COOH"],
+      options: ["CH₃COOH", "CH₃C00C₂H₅", "CH₃(CH₂)₂COOH"],
       type: "single",
-      answer: "CH3(CH2)2COOH"
+      answer: "CH₃(CH₂)₂COOH"
   },
   {
       question: "固态法发酵的小曲酒到____后才确立为小曲清香型。",
@@ -1096,7 +1096,7 @@ export const localQuestions: Question[] = [
       answer: "20项"
   },
   {
-      question: "醋酉翁又称为____。",
+      question: "醋嗡又称为____。",
       options: ["2,3-丁二醇", "2,3-丁二酮", "3-羟基丁酮", "3-甲基丁醇"],
       type: "single",
       answer: "3-羟基丁酮"
@@ -1589,7 +1589,7 @@ export const localQuestions: Question[] = [
     answer: "对"
 },
 {
-    question: "白酒中发甜味团为CHOH—CHOH，助甜味团为CHOH。纯乙醇就有甜味的感觉，随着羟基（OH）数增加，其甜味也增加，其顺序为乙醇<乙二醇<丙三醇<戊五醇<已六醇。",
+    question: "白酒中发甜味团为CHOH-CHOH，助甜味团为CHOH。纯乙醇就有甜味的感觉，随着羟基(-OH)数增加，其甜味也增加，其顺序为乙醇<乙二醇<丙三醇<戊五醇<已六醇。",
     options: ["对", "错"],
     type: "boolean",
     answer: "对"
@@ -1631,7 +1631,7 @@ export const localQuestions: Question[] = [
     answer: "对"
 },
 {
-    question: "白酒中的多元醇类，以甘露醇（即己六醇）的甜味最浓。",
+    question: "白酒中的多元醇类，以甘露醇（己六醇）的甜味最浓。",
     options: ["对", "错"],
     type: "boolean",
     answer: "对"
@@ -1925,7 +1925,7 @@ export const localQuestions: Question[] = [
     answer: "错"
 },
 {
-    question: "中国酒业协会《白酒年份酒》团体标准白酒年份酒定义：以传统白酒工艺酿造，经贮存一年及以上基酒勾调而成，标注年份为所用主体基酒最长酒龄，不直接或间接添加食用酒精及非自身发酵产生的呈色呈香呈味物质，具有本品固有 风格特征的白酒。",
+    question: "中国酒业协会《白酒年份酒》团体标准白酒年份酒定义：以传统白酒工艺酿造，经贮存一年及以上基酒勾调而成，标注年份为所用主体基酒最长酒龄，不直接或间接添加食用酒精及非自身发酵产生的呈色呈香呈味物质，具有本品固有风格特征的白酒。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"
@@ -2141,7 +2141,7 @@ export const localQuestions: Question[] = [
     answer: "错"
 },
 {
-    question: "色谱骨架中复杂成分主要是指白酒中含量大于2-3mg／lOOml的所有成分。",
+    question: "色谱骨架中复杂成分主要是指白酒中含量大于2-3mg/lOOml的所有成分。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"
@@ -2159,7 +2159,7 @@ export const localQuestions: Question[] = [
     answer: "对"
 },
 {
-    question: "酒精发酵的主体是酵母菌。从酵母菌中可以分离出20～30种酶，都能直接参与酒精的发酵。",
+    question: "酒精发酵的主体是酵母菌。从酵母菌中可以分离出20~30种酶，都能直接参与酒精的发酵。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"
@@ -2831,7 +2831,7 @@ export const localQuestions: Question[] = [
     answer: "对"
 },
 {
-    question: "在白酒中含量较多的是一些小于6个碳的醇。它们一般较难挥发。",
+    question: "在白酒中含量较多的是一些小于6个碳的醇，它们一般较难挥发。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"
@@ -2989,7 +2989,7 @@ export const localQuestions: Question[] = [
 },
 {
   question: "咸的典型物质是____。",
-  options: ["食盐", "CaCl2", "NaCl", "CaCO3", "Na2CO3"],
+  options: ["食盐", "CaCl₂", "NaCl", "CaCO₃", "Na₂CO₃"],
   type: "multiple",
   answer: ["食盐", "NaCl"]
 },
@@ -3096,7 +3096,7 @@ export const localQuestions: Question[] = [
   answer: ["乙酸", "己酸"]
 },
 {
-  question: "CH3CHOHCOOH是____的分子式，CH3COOC2H5是____的分子式。",
+  question: "CH₃CHOHCOOH是____的分子式，CH₃COOC₂H₅是____的分子式。",
   options: ["丁酸", "乳酸", "丁酸乙酯", "戊醇", "乙酸乙酯"],
   type: "multiple",
   answer: ["乳酸", "乙酸乙酯"]
@@ -3174,7 +3174,7 @@ export const localQuestions: Question[] = [
   answer: ["中段", "后段"]
 },
 {
-  question: "在勾兑调味中，根据基础酒质情况，常常有添加少量的丙三醇、2，3一丁二醇，也可用____等来改善酒质和增加自然感。",
+  question: "在勾兑调味中，根据基础酒质情况，常常有添加少量的丙三醇、2,3-丁二醇，也可用____等来改善酒质和增加自然感。",
   options: ["异丁醇", "异戊醇", "己醇", "正丁醇"],
   type: "multiple",
   answer: ["异丁醇", "异戊醇", "己醇", "正丁醇"]
@@ -3415,9 +3415,9 @@ export const localQuestions: Question[] = [
 },
 {
   question: "多元醇在白酒中呈甜味，其中____在白酒中起缓冲作用，使酒增加绵甜、回味和醇厚感。",
-  options: ["丙三醇", "正丙醇", "正丁醇", "2.3-丁二醇"],
+  options: ["丙三醇", "正丙醇", "正丁醇", "2,3-丁二醇"],
   type: "multiple",
-  answer: ["丙三醇", "2.3-丁二醇"]
+  answer: ["丙三醇", "2,3-丁二醇"]
 },
 {
   question: "产品设计方案的内容包括____方面。",
@@ -3625,9 +3625,9 @@ export const localQuestions: Question[] = [
 },
 {
   question: "勾调的前提有____。",
-  options: ["蒸馏", "分槽蒸馏", "分类入库", "按质摘酒"],
+  options: ["蒸馏", "分糟蒸馏", "分类入库", "按质摘酒"],
   type: "multiple",
-  answer: ["蒸馏", "分槽蒸馏", "分类入库", "按质摘酒"]
+  answer: ["蒸馏", "分糟蒸馏", "分类入库", "按质摘酒"]
 },
 {
   question: "带苦、涩、酸、麻味的酒不一定是坏酒，若使用得当，则可以作为调味酒。以下说法正确的是：____。",
@@ -3649,9 +3649,9 @@ export const localQuestions: Question[] = [
 },
 {
   question: "勾调原则有____。",
-  options: ["注重各种槽醅之间的搭配", "注重老酒和一般酒的搭配", "老窖酒与新窖酒的搭配", "注意不同季节所产酒的搭配"],
+  options: ["注重各种糟醅之间的搭配", "注重老酒和一般酒的搭配", "老窖酒与新窖酒的搭配", "注意不同季节所产酒的搭配"],
   type: "multiple",
-  answer: ["注重各种槽醅之间的搭配", "注重老酒和一般酒的搭配", "老窖酒与新窖酒的搭配", "注意不同季节所产酒的搭配"]
+  answer: ["注重各种糟醅之间的搭配", "注重老酒和一般酒的搭配", "老窖酒与新窖酒的搭配", "注意不同季节所产酒的搭配"]
 },
 {
   question: "浓香型固态白酒生产的基本类型有____。",
