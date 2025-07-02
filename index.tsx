@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { localQuestions, Question, QuestionType } from './questions.ts';
@@ -58,7 +57,7 @@ type AnswerSheetProps = {
 const AnswerSheet: React.FC<AnswerSheetProps> = ({ total, userAnswers, correctAnswers, currentQuestionIndex, onSelectQuestion, isFinished, questions, quizMode, confirmedAnswers, flaggedQuestions }) => {
     const [itemsPerPage, setItemsPerPage] = useState(18);
     const [currentPage, setCurrentPage] = useState(0);
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const sheetRef = useRef<HTMLDivElement>(null);
 
     const calculateItemsPerPage = useCallback(() => {
@@ -189,7 +188,7 @@ const App: React.FC = () => {
   const [score, setScore] = useState(0);
   const [isCurrentConfirmed, setIsCurrentConfirmed] = useState(false);
   const [confirmedAnswers, setConfirmedAnswers] = useState<boolean[]>([]);
-  const [isRapidMode, setIsRapidMode] = useState(false);
+  const [isRapidMode, setIsRapidMode] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [reviewingWrongOnly, setReviewingWrongOnly] = useState(false);
   const [wrongQuestionIndices, setWrongQuestionIndices] = useState<number[]>([]);
@@ -604,7 +603,7 @@ const App: React.FC = () => {
                      </button>
                 </div>
                 
-                <h2 className="question-text">这一杯是“{currentSample.酒样名称}”</h2>
+                <h2 className="question-text">这一杯是"{currentSample.酒样名称}"</h2>
                 
                 <div className="blind-tasting-form">
                     {(Object.keys(initialBaijiuAnswer) as Array<keyof BaijiuUserAnswer>).map(field => {
@@ -742,10 +741,13 @@ const App: React.FC = () => {
                                     <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" />
                                 </svg>
                              </button>
-                             {isExamMode && gameState === 'active' && timeLeft !== null && (
+                            <span className="question-type-tag">{getQuestionTypeLabel(currentQuestion.type)}</span>
+                            {isExamMode && gameState === 'active' && timeLeft !== null && (
                                 <div className="timer">{formatTime(timeLeft)}</div>
                              )}
-                            <span className="question-type-tag">{getQuestionTypeLabel(currentQuestion.type)}</span>
+                            <button className="navigation-controls-exit-btn" onClick={playAgain}>
+                                退出
+                            </button>
                         </div>
                     </div>
                     <h2 className="question-text">{currentQuestion.question}</h2>
@@ -817,54 +819,6 @@ const App: React.FC = () => {
                         </>
                       )}
                     </div>
-
-                     {isFinished ? (
-                         <div className="final-score-active">
-                            <h2>考试结束！总分：{score}/{questions.length}</h2>
-                             {scoreAnalysis && scoreAnalysis.length > 0 && (
-                                <div className="score-analysis-container">
-                                    <h3 
-                                        onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
-                                        className={isAnalysisVisible ? 'expanded' : ''}
-                                        aria-expanded={isAnalysisVisible}
-                                        aria-controls="analysis-grid"
-                                    >
-                                        分数分析
-                                    </h3>
-                                    {isAnalysisVisible && (
-                                        <div className="analysis-grid" id="analysis-grid">
-                                            {scoreAnalysis.map(item => (
-                                                item.total > 0 && (
-                                                    <div className="analysis-item" key={item.type}>
-                                                        <span>{getQuestionTypeLabel(item.type)}:</span>
-                                                        <span>{item.correct} / {item.total}</span>
-                                                        <span>({Math.round((item.correct / item.total) * 100)}%)</span>
-                                                    </div>
-                                                )
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            <div className="final-score-actions">
-                                <button className="action-btn" onClick={playAgain}>再来一次</button>
-                                {hasWrongAnswers && !reviewingWrongOnly && (
-                                    <button className="review-btn" onClick={handleReviewWrong}>
-                                        错题回顾
-                                    </button>
-                                )}
-                                {reviewingWrongOnly && (
-                                    <button className="review-btn" onClick={handleReviewAll}>
-                                        查看试卷
-                                    </button>
-                                )}
-                            </div>
-                         </div>
-                    ) : (
-                        <button className="finish-btn" onClick={finishQuiz}>
-                          {isPracticeMode ? '结束练习' : '结束考试'}
-                        </button>
-                    )}
                 </div>
 
                 <div className="sidebar-content">
@@ -880,6 +834,38 @@ const App: React.FC = () => {
                         confirmedAnswers={confirmedAnswers}
                         flaggedQuestions={flaggedQuestions}
                     />
+                    {/* 结束考试/练习按钮，未结束时显示 */}
+                    {!isFinished && (
+                        <button className="finish-btn" onClick={finishQuiz}>
+                          {isPracticeMode ? '结束练习' : '结束考试'}
+                        </button>
+                    )}
+                    {/* 分数分析：仅在大屏显示 */}
+                    {isFinished && scoreAnalysis && scoreAnalysis.length > 0 && (
+                        <div className="score-analysis-container score-analysis-desktop">
+                            <h3 
+                                onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
+                                className={isAnalysisVisible ? 'expanded' : ''}
+                                aria-expanded={isAnalysisVisible}
+                                aria-controls="analysis-grid"
+                            >
+                                分数分析
+                            </h3>
+                            {isAnalysisVisible && (
+                                <div className="analysis-grid" id="analysis-grid">
+                                    {scoreAnalysis.map(item => (
+                                        item.total > 0 && (
+                                            <div className="analysis-item" key={item.type}>
+                                                <span>{getQuestionTypeLabel(item.type)}:</span>
+                                                <span>{item.correct} / {item.total}</span>
+                                                <span>({Math.round((item.correct / item.total) * 100)}%)</span>
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -962,7 +948,7 @@ const App: React.FC = () => {
                 <p>随机抽取酒样进行品鉴，测试你的专业知识。</p>
             )}
 
-            <div className="settings-checkbox-container" style={{justifyContent: 'center', marginTop: '2rem'}}>
+            <div className="settings-checkbox-container" style={{justifyContent: 'center'}}>
                 <div className="setting-item-checkbox">
                     <input
                         type="checkbox"
@@ -973,8 +959,6 @@ const App: React.FC = () => {
                     <label htmlFor="dark-mode">深色模式</label>
                 </div>
             </div>
-
-
             <button className="action-btn" style={{marginTop: '1rem'}} onClick={startQuiz}>
               开始学习
             </button>
