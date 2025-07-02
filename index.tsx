@@ -6,7 +6,7 @@ import { baijiuData, BaijiuSample } from './baijiu.ts';
 type GameState = 'idle' | 'active' | 'finished';
 type QuizMode = 'practice' | 'exam' | 'blind' | 'stats';
 
-const EXAM_DURATION_MINUTES = 15;
+const EXAM_DURATION_MINUTES = 10;
 
 type BaijiuUserAnswer = {
     香型: string;
