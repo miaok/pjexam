@@ -557,10 +557,10 @@ const App: React.FC = () => {
             // 判断是否答错（任一字段错误即为错）
             let isWrong = false;
             if (baijiuUserAnswer.香型 !== currentSample.香型) isWrong = true;
-            if (baijiuUserAnswer.酒度 !== currentSample.酒度) isWrong = true;
+            if (baijiuUserAnswer.酒度 !== currentSample.酒度.toString()) isWrong = true;
             // 总分容差0.4
             const userScore = parseFloat(baijiuUserAnswer.总分);
-            const correctScore = parseFloat(currentSample.总分);
+            const correctScore = parseFloat(currentSample.总分.toString());
             if (Math.abs(userScore - correctScore) > 0.4) isWrong = true;
             // 设备
             const userEquip = new Set(baijiuUserAnswer.设备);
@@ -1251,7 +1251,7 @@ const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {
     }
   });
   // 排序取前10
-  const top10 = (arr: { wrong: number }[]) => arr.filter(x => x.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 10);
+  const top10 = (arr: StatQuestion[]) => arr.filter(x => x.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 10);
   // 考试记录
   const examRecords = getExamRecords();
   // 时间格式化
