@@ -202,6 +202,18 @@ const App: React.FC = () => {
   const [baijiuUserAnswer, setBaijiuUserAnswer] = useState<BaijiuUserAnswer>(initialBaijiuAnswer);
   const [isBaijiuAnswerConfirmed, setIsBaijiuAnswerConfirmed] = useState(false);
 
+  // 新增：品鉴模式可选项
+  const [baijiuFields, setBaijiuFields] = useState({
+    香型: true,
+    酒度: true,
+    总分: true,
+    设备: true,
+    发酵剂: true,
+  });
+
+  // 新增：品鉴流程字段控制
+  const [activeBaijiuFields, setActiveBaijiuFields] = useState(baijiuFields);
+
   const baijiuOptions = useMemo(() => {
     // Hardcoded and sorted options as requested by the user
     const aromaOptions = [
@@ -283,6 +295,7 @@ const App: React.FC = () => {
         setCurrentBaijiuIndex(0);
         setBaijiuUserAnswer(initialBaijiuAnswer);
         setIsBaijiuAnswerConfirmed(false);
+        setActiveBaijiuFields(baijiuFields); // 记录当前品鉴字段
         setGameState('active');
         return;
     }
@@ -565,6 +578,9 @@ const App: React.FC = () => {
         if (baijiuQuestions.length === 0) return null;
         const currentSample = baijiuQuestions[currentBaijiuIndex];
         const isFinished = currentBaijiuIndex === baijiuQuestions.length - 1 && isBaijiuAnswerConfirmed;
+        if (Object.values(activeBaijiuFields).every(v => !v)) {
+          return <div style={{textAlign: 'center', marginTop: '2rem', color: '#c00', fontSize: '1.2rem'}}>请至少选择一个品鉴项</div>;
+        }
     
         const checkAnswer = (field: keyof BaijiuUserAnswer): 'correct' | 'incorrect' | 'unanswered' => {
             if (!isBaijiuAnswerConfirmed) return 'unanswered';
@@ -613,7 +629,7 @@ const App: React.FC = () => {
                 <h2 className="question-text">这一杯是"{currentSample.酒样名称}"</h2>
                 
                 <div className="blind-tasting-form">
-                    {(Object.keys(initialBaijiuAnswer) as Array<keyof BaijiuUserAnswer>).map(field => {
+                    {(Object.keys(initialBaijiuAnswer) as Array<keyof BaijiuUserAnswer>).filter(field => activeBaijiuFields[field]).map(field => {
                         let inputControl;
                         if (field === '总分') {
                             inputControl = (
@@ -739,10 +755,10 @@ const App: React.FC = () => {
         if (questions.length === 0) {
             return (
                 <div className="welcome-container">
-                    <h1>No Questions Selected</h1>
-                    <p style={{ margin: '1rem 0 2rem' }}>Please go back and select at least one question to start the quiz.</p>
+                    <h1>这么玩是吧</h1>
+                    <p style={{ margin: '1rem 0 2rem' }}>回去吧！</p>
                     <button className="action-btn" onClick={playAgain}>
-                        Back to Settings
+                        返回首页
                     </button>
                 </div>
             );
@@ -997,7 +1013,24 @@ const App: React.FC = () => {
                     </div>
                 </>
             ) : (
-                <p>品酒如诗，味觉如画</p>
+                <>
+                  <p>品酒如诗，味觉如画</p>
+                  <div className="settings-container">
+                    <div className="settings-checkbox-container" style={{justifyContent: 'center', marginBottom: '1rem'}}>
+                      {Object.entries(baijiuFields).map(([field, checked]) => (
+                        <div className="setting-item-checkbox" key={field}>
+                          <input
+                            type="checkbox"
+                            id={`baijiu-field-${field}`}
+                            checked={checked}
+                            onChange={e => setBaijiuFields(prev => ({ ...prev, [field]: e.target.checked }))}
+                          />
+                          <label htmlFor={`baijiu-field-${field}`}>{field}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
             )}
 
             <div className="settings-checkbox-container" style={{justifyContent: 'center'}}>
@@ -1011,7 +1044,12 @@ const App: React.FC = () => {
                     <label htmlFor="dark-mode">深色模式</label>
                 </div>
             </div>
-            <button className="action-btn" style={{marginTop: '1rem'}} onClick={startQuiz}>
+            <button
+              className="action-btn"
+              style={{marginTop: '1rem'}}
+              onClick={startQuiz}
+              disabled={quizMode === 'blind' && Object.values(baijiuFields).every(v => !v)}
+            >
               开始学习
             </button>
           </div>
@@ -1051,6 +1089,13 @@ const App: React.FC = () => {
         multiple: Math.min(40, maxCounts.multiple || 0),
       });
       setShuffleOptions(saved.shuffleOptions ?? true);
+      setBaijiuFields(saved.baijiuFields ?? {
+        香型: true,
+        酒度: true,
+        总分: true,
+        设备: true,
+        发酵剂: true,
+      });
     }
     hasRestoredRef.current = true;
   }, []);
@@ -1081,9 +1126,10 @@ const App: React.FC = () => {
       isBaijiuAnswerConfirmed,
       questionCounts,
       shuffleOptions,
+      baijiuFields,
     };
     saveProgress(progress);
-  }, [gameState, quizMode, questions, currentQuestionIndex, userAnswers, score, isCurrentConfirmed, confirmedAnswers, isRapidMode, timeLeft, reviewingWrongOnly, wrongQuestionIndices, currentWrongQuestionDisplayIndex, flaggedQuestions, isDarkMode, baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, questionCounts, shuffleOptions]);
+  }, [gameState, quizMode, questions, currentQuestionIndex, userAnswers, score, isCurrentConfirmed, confirmedAnswers, isRapidMode, timeLeft, reviewingWrongOnly, wrongQuestionIndices, currentWrongQuestionDisplayIndex, flaggedQuestions, isDarkMode, baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, questionCounts, shuffleOptions, baijiuFields]);
 
   return <div className="quiz-container">{renderContent()}</div>;
 };
