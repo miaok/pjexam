@@ -195,7 +195,6 @@ const App: React.FC = () => {
   const [currentWrongQuestionDisplayIndex, setCurrentWrongQuestionDisplayIndex] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isAnalysisVisible, setIsAnalysisVisible] = useState(false);
 
   // Blind Tasting Mode State
   const [baijiuQuestions, setBaijiuQuestions] = useState<BaijiuSample[]>([]);
@@ -236,34 +235,6 @@ const App: React.FC = () => {
     if (gameState !== 'finished') return false;
     return userAnswers.some((ans, i) => !isCorrectUtil(questions[i], ans));
   }, [gameState, userAnswers, questions]);
-
-  const scoreAnalysis = useMemo(() => {
-    if (gameState !== 'finished') {
-      return null;
-    }
-
-    const analysis = questions.reduce((acc, question, index) => {
-      const type = question.type;
-      if (!acc[type]) {
-        acc[type] = { correct: 0, total: 0 };
-      }
-
-      acc[type].total++;
-      if (isCorrectUtil(question, userAnswers[index])) {
-        acc[type].correct++;
-      }
-      
-      return acc;
-    }, {} as Record<QuestionType, { correct: number, total: number }>);
-    
-    return (Object.keys(analysis) as QuestionType[])
-      .sort((a, b) => typeOrder[a] - typeOrder[b])
-      .map(type => ({
-        type,
-        ...analysis[type]
-      }));
-
-  }, [gameState, questions, userAnswers]);
 
   const maxCounts = useMemo(() => {
     return localQuestions.reduce((acc, q) => {
@@ -444,7 +415,6 @@ const App: React.FC = () => {
     setWrongQuestionIndices([]);
     setCurrentWrongQuestionDisplayIndex(0);
     setFlaggedQuestions(new Set());
-    setIsAnalysisVisible(false);
     // Reset blind mode states
     setBaijiuQuestions([]);
     setCurrentBaijiuIndex(0);
@@ -464,27 +434,6 @@ const App: React.FC = () => {
         return newSet;
     });
   }, [currentQuestionIndex, gameState]);
-
-  const handleReviewWrong = () => {
-    const wrongIndices = questions.reduce<number[]>((acc, q, i) => {
-        if (!isCorrectUtil(q, userAnswers[i])) {
-            acc.push(i);
-        }
-        return acc;
-    }, []);
-
-    if (wrongIndices.length > 0) {
-        setWrongQuestionIndices(wrongIndices);
-        setCurrentWrongQuestionDisplayIndex(0);
-        setCurrentQuestionIndex(wrongIndices[0]);
-        setReviewingWrongOnly(true);
-    }
-  };
-
-  const handleReviewAll = () => {
-    setReviewingWrongOnly(false);
-    setCurrentQuestionIndex(0);
-  };
 
   const handleWrongReviewNav = (direction: 'prev' | 'next') => {
     const newDisplayIndex = direction === 'prev' ? currentWrongQuestionDisplayIndex - 1 : currentWrongQuestionDisplayIndex + 1;
@@ -683,6 +632,31 @@ const App: React.FC = () => {
         )
     }
 
+  const handleToggleReviewingWrongOnly = () => {
+    if (!reviewingWrongOnly) {
+      // 切换到只看错题
+      const wrongs = questions.reduce<number[]>((acc, q, i) => {
+        if (!isCorrectUtil(q, userAnswers[i])) acc.push(i);
+        return acc;
+      }, []);
+      setWrongQuestionIndices(wrongs);
+      setCurrentWrongQuestionDisplayIndex(0);
+      if (wrongs.length > 0) setCurrentQuestionIndex(wrongs[0]);
+    } else {
+      // 切回全部
+      setCurrentWrongQuestionDisplayIndex(0);
+      setCurrentQuestionIndex(0);
+    }
+    setReviewingWrongOnly(v => !v);
+  };
+
+  useEffect(() => {
+    if (reviewingWrongOnly && wrongQuestionIndices.length > 0) {
+      setCurrentQuestionIndex(wrongQuestionIndices[currentWrongQuestionDisplayIndex]);
+    }
+    // eslint-disable-next-line
+  }, [reviewingWrongOnly, currentWrongQuestionDisplayIndex, wrongQuestionIndices]);
+
   const renderContent = () => {
     switch (gameState) {
       case 'active':
@@ -750,6 +724,24 @@ const App: React.FC = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* 新增：分数展示和回顾按钮 */}
+                    {isFinished && (
+                      <div className="final-score-active">
+                        <button className="review-btn" disabled style={{pointerEvents: 'none'}}>{score} 分</button>
+                        <div className="final-score-actions">
+                          {hasWrongAnswers && (
+                            <button
+                              className="review-btn"
+                              onClick={handleToggleReviewingWrongOnly}
+                            >
+                              {reviewingWrongOnly ? '回顾全部' : '只看错题'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <h2 className="question-text">{currentQuestion.question}</h2>
                     <div className="options-grid">
                       {currentQuestion.options.map((option, index) => {
@@ -796,25 +788,36 @@ const App: React.FC = () => {
 
                     <div className="navigation-controls">
                       {reviewingWrongOnly ? (
-                          <>
-                              <button onClick={() => handleWrongReviewNav('prev')} disabled={currentWrongQuestionDisplayIndex === 0}>上一题</button>
-                              <button onClick={() => handleWrongReviewNav('next')} disabled={currentWrongQuestionDisplayIndex === wrongQuestionIndices.length - 1}>下一题</button>
-                          </>
+                        <>
+                          <button onClick={() => handleWrongReviewNav('prev')} disabled={currentWrongQuestionDisplayIndex === 0}>上一题</button>
+                          <button onClick={() => handleWrongReviewNav('next')} disabled={currentWrongQuestionDisplayIndex === wrongQuestionIndices.length - 1}>下一题</button>
+                        </>
                       ) : (
                         <>
                           <button onClick={() => goToQuestion(currentQuestionIndex - 1)} disabled={currentQuestionIndex === 0}>上一题</button>
-                          {showNavButtons && (
-                            <>
-                              {isPracticeMode && !isFinished ? (
-                                isPracticeAndConfirmed || confirmedAnswers[currentQuestionIndex] ? (
+                          {/* 回顾全部模式下，考试结束后也始终显示"下一题"按钮 */}
+                          {isFinished && (
+                            <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>下一题</button>
+                          )}
+                          {/* 其他情况保持原有逻辑 */}
+                          {!isFinished && (
+                            (isExamMode && isRapidMode ? (
+                              <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>下一题</button>
+                            ) : (
+                              showNavButtons && (
+                                <>
+                                  {isPracticeMode && !isFinished ? (
+                                    isPracticeAndConfirmed || confirmedAnswers[currentQuestionIndex] ? (
+                                      <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>下一题</button>
+                                    ) : (
+                                      <button onClick={handleConfirmAnswer} disabled={!isAnswered}>确认答案</button>
+                                    )
+                                  ) : (
                                     <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>下一题</button>
-                                ) : (
-                                    <button onClick={handleConfirmAnswer} disabled={!isAnswered}>确认答案</button>
-                                )
-                              ) : (
-                                <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questions.length - 1}>下一题</button>
-                              )}
-                            </>
+                                  )}
+                                </>
+                              )
+                            ))
                           )}
                         </>
                       )}
@@ -839,32 +842,6 @@ const App: React.FC = () => {
                         <button className="finish-btn" onClick={finishQuiz}>
                           {isPracticeMode ? '结束练习' : '结束考试'}
                         </button>
-                    )}
-                    {/* 分数分析：仅在大屏显示 */}
-                    {isFinished && scoreAnalysis && scoreAnalysis.length > 0 && (
-                        <div className="score-analysis-container score-analysis-desktop">
-                            <h3 
-                                onClick={() => setIsAnalysisVisible(!isAnalysisVisible)}
-                                className={isAnalysisVisible ? 'expanded' : ''}
-                                aria-expanded={isAnalysisVisible}
-                                aria-controls="analysis-grid"
-                            >
-                                分数分析
-                            </h3>
-                            {isAnalysisVisible && (
-                                <div className="analysis-grid" id="analysis-grid">
-                                    {scoreAnalysis.map(item => (
-                                        item.total > 0 && (
-                                            <div className="analysis-item" key={item.type}>
-                                                <span>{getQuestionTypeLabel(item.type)}:</span>
-                                                <span>{item.correct} / {item.total}</span>
-                                                <span>({Math.round((item.correct / item.total) * 100)}%)</span>
-                                            </div>
-                                        )
-                                    ))}
-                                </div>
-                            )}
-                        </div>
                     )}
                 </div>
             </div>

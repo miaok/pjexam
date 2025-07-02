@@ -233,7 +233,7 @@ body {
 .question-meta-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .flag-btn {
@@ -266,7 +266,7 @@ body {
 }
 
 .timer {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--primary-color);
     background-color: var(--primary-light);
@@ -379,7 +379,6 @@ body {
 .navigation-controls {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 1rem;
     min-height: 50px; /* Reserve space for buttons to prevent layout shift */
 }
 
@@ -387,7 +386,7 @@ body {
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     color: var(--text-color);
-    padding: 0.5rem 1.75rem;
+    padding: 0.25rem 1.75rem;
     border-radius: 0.5rem;
     font-size: 1rem;
     font-weight: 700;
@@ -401,7 +400,7 @@ body {
     color: var(--primary-color);
     font-size: 0.85rem;
     font-weight: 700;
-    padding: 0.5rem 0.5rem;
+    padding: 0.6rem 0.6rem;
     border-radius: 0.5rem;
     border: none;
     box-shadow: none;
@@ -410,7 +409,9 @@ body {
     align-items: center;
     justify-content: center;
 }
-
+[data-theme="dark"] .navigation-controls-exit-btn {
+    color: var(--text-color);
+}
 .navigation-controls-exit-btn:hover:not(:disabled) {
     background-color: var(--primary-hover);
     color: #fff;
@@ -443,8 +444,7 @@ body {
 }
 
 
-.answer-sheet-container,
-.score-analysis-container {
+.answer-sheet-container{
     background: none;
     border: none;
     border-radius: 0;
@@ -673,106 +673,53 @@ body {
 }
 
 .final-score-active {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
     padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
     border-top: 1px solid var(--border-color);
     text-align: center;
 }
 
 .final-score-active h2 {
     font-size: 1.5rem;
-}
-
-.score-analysis-container h3 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s ease;
-    background-color: var(--primary-light);
-    border-radius: 0.75rem;
     margin: 0;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-[data-theme="dark"] .score-analysis-container h3 {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-}
-
-.score-analysis-container h3::after {
-    content: '▼';
-    font-size: 1.2rem;
-    margin-left: 0.5rem;
-    color: var(--primary-color);
-    transition: transform 0.3s ease;
-    display: inline-block;
-}
-
-[data-theme="dark"] .score-analysis-container h3::after {
-    color: var(--text-color);
-}
-
-.score-analysis-container h3.expanded::after {
-    transform: rotate(180deg);
-}
-
-.analysis-grid {
-    display: grid;
-    gap: 0.75rem;
-}
-
-.analysis-item {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 1rem;
-    align-items: center;
-    font-size: 1rem;
-}
-
-.analysis-item span:first-child {
-    text-align: left;
-    font-weight: 500;
-}
-
-.analysis-item span:nth-child(2) {
-    text-align: right;
-    font-weight: 700;
-}
-.analysis-item span:last-child {
-    text-align: right;
-    color: var(--subtle-text);
-    width: 60px;
 }
 
 .final-score-actions {
     display: flex;
     flex-direction: row;
-    gap: 1rem;
     align-items: center;
-    width: 100%;
-    max-width: 100%;
-    margin: 0.5rem auto 0;
-    justify-content: center;
+    gap: 1rem;
+    margin: 0;
 }
 
 .review-btn {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1.2rem;
-  font-weight: 700;
-  background-color: transparent;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+    padding: 0.25rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    box-sizing: border-box;
 }
 
-.review-btn:hover:not(:disabled) {
-  background-color: var(--primary-light);
+.review-btn:disabled {
+    opacity: 1;
+    color: var(--primary-color);
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    cursor: default;
 }
 
 /* Blind Tasting Styles */
@@ -989,12 +936,6 @@ body {
 }
 
 @media (min-width: 801px) {
-  .score-analysis-mobile {
-    display: none !important;
-  }
-  .score-analysis-desktop {
-    display: block !important;
-  }
   .sidebar-content {
     margin-top: 0 !important;
   }
@@ -1003,14 +944,6 @@ body {
   }
   .quiz-layout {
     gap: 2rem;
-  }
-}
-@media (max-width: 800px) {
-  .score-analysis-desktop {
-    display: none !important;
-  }
-  .score-analysis-mobile {
-    display: block !important;
   }
 }
 
