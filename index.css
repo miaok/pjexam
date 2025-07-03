@@ -15,7 +15,7 @@
 [data-theme="dark"] {
   --primary-color: #6366f1;
   --primary-hover: #4f46e5;
-  --primary-light: #312e81; /* A bit darker for better contrast */
+  --primary-light: #312e81; 
   --correct-color: #1d8744;
   --incorrect-color: #922222;
   --background-color: #0f172a;
@@ -215,15 +215,6 @@ body {
     top: 2rem;
 }
 
-.flagged-info {
-    text-align: center;
-    color: var(--primary-color);
-    font-weight: 500;
-    background-color: var(--primary-light);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-}
-
 .question-meta {
   display: flex;
   justify-content: space-between;
@@ -237,33 +228,82 @@ body {
   gap: 0.5rem;
 }
 
+/* 统一meta区域按钮和标签的风格与hover效果 */
+.question-meta-right > * {
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: var(--primary-light);
+  color: var(--primary-color);
+  transition: background 0.2s, color 0.2s;
+  margin-left: 0.15rem;
+  margin-right: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  border: none;
+}
+
+.question-meta-right > *:not(:disabled):hover,
+.question-meta-right > *.active {
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+}
+.question-type-tag,
+.timer {
+  cursor: default;
+}
+.question-type-tag:hover,
+.timer:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.flag-count {
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .flag-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: #cbd5e1; /* A light grey */
-    transition: color 0.2s ease;
-    line-height: 0;
+  background: var(--primary-light);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  padding: 0.45rem 0.7rem 0.45rem 0.5rem;
+  color: var(--primary-color);
+  transition: background 0.2s, color 0.2s;
+  line-height: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
 }
 
-.flag-btn svg {
-    display: block;
-    width: 20px;
-    height: 20px;
-}
-
-.flag-btn:not(:disabled):hover {
-    color: #94a3b8;
-}
-
+.flag-btn:not(:disabled):hover,
 .flag-btn.active {
-    color: var(--flag-color);
+  background: var(--primary-color);
+  color: #fff;
 }
 
 .flag-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.flag-btn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.flag-btn.active .flag-count,
+.flag-btn:not(:disabled):hover .flag-count {
+  color: #fff;
 }
 
 .timer {
@@ -271,7 +311,7 @@ body {
     font-weight: 700;
     color: var(--primary-color);
     background-color: var(--primary-light);
-    padding: 0.6rem 0.6rem;
+    padding: 0.6rem 0.5rem;
     border-radius: 0.5rem;
     white-space: nowrap;
 }
@@ -295,11 +335,16 @@ body {
 }
 
 .question-header {
-  flex-grow: 1;
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: var(--subtle-text);
-  text-align: left;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.5rem 0.5rem;
+    border-radius: 0.5rem;
+}
+
+[data-theme="dark"] .question-header {
+    color: var(--text-color);
 }
 
 .question-text {
@@ -884,7 +929,7 @@ body {
         margin-bottom: 0rem;
     }
     .timer {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 }
 
@@ -1061,4 +1106,43 @@ body {
   background: var(--primary-light);
   color: var(--primary-color);
 }
+
+.modal-mask {
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: var(--card-background);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 1.2rem 1.5rem 1rem 1.5rem;
+  min-width: 220px;
+  max-width: 90vw;
+  text-align: center;
+}
+.type-modal-btn {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.5rem 0.5rem;
+  margin-bottom: 0.2rem;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.type-modal-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+
+
+
 

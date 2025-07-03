@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import OptionsGrid from '../components/OptionsGrid';
 import NavigationControls from '../components/NavigationControls';
 import AnswerSheet from '../components/AnswerSheet';
@@ -47,17 +47,30 @@ const QuizPage: React.FC<QuizPageProps> = ({
   const isAnswered = userAnswer !== null && (!Array.isArray(userAnswer) || userAnswer.length > 0);
   const showNavButtons = !(isRapidMode && isExamMode && (currentQuestion.type === 'single' || currentQuestion.type === 'boolean'));
 
+  // 新增：题型选择弹窗
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const typeOptions = [
+    { type: 'boolean', label: '判断' },
+    { type: 'single', label: '单选' },
+    { type: 'multiple', label: '多选' },
+  ];
+  // 跳转到该类型的第一题
+  const handleTypeSelect = (type: string) => {
+    const idx = quiz.questions.findIndex(q => q.type === type);
+    if (idx !== -1) {
+      quiz.goToQuestion(idx);
+    }
+    setShowTypeModal(false);
+  };
+
   return (
     <div className="quiz-layout">
       <div className="main-content">
-        {gameState === 'active' && quiz.flaggedQuestions.size > 0 && (
-          <p className="flagged-info">{quiz.flaggedQuestions.size}题答案待定</p>
-        )}
         <div className="question-meta">
           <p className="question-header">
             {isFinished && quiz.reviewingWrongOnly
               ? `错题 ${quiz.currentWrongQuestionDisplayIndex + 1} / ${quiz.wrongQuestionIndices.length}`
-              : `题 ${quiz.currentQuestionIndex + 1} / ${quiz.questions.length}`
+              : `题${quiz.currentQuestionIndex + 1}/${quiz.questions.length}`
             }
           </p>
           <div className="question-meta-right">
@@ -67,17 +80,41 @@ const QuizPage: React.FC<QuizPageProps> = ({
               disabled={gameState === 'finished'}
               aria-label="Flag question for review"
             >
+              {quiz.flaggedQuestions.size > 0 && (
+                <span className="flag-count">{quiz.flaggedQuestions.size}</span>
+              )}
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" />
               </svg>
             </button>
-            <span className="question-type-tag">{getQuestionTypeLabel(currentQuestion.type)}</span>
+            {/* 题型按钮可点击，弹窗选择题型 */}
+            <button className="question-type-tag" onClick={() => setShowTypeModal(true)}>
+              {getQuestionTypeLabel(currentQuestion.type)}
+            </button>
             {isExamMode && gameState === 'active' && quiz.timeLeft !== null && (
               <div className="timer">{formatTime(quiz.timeLeft)}</div>
             )}
             <button className="navigation-controls-exit-btn" onClick={handleExit}>退出</button>
           </div>
         </div>
+        {/* 题型选择弹窗 */}
+        {showTypeModal && (
+          <div className="modal-mask" onClick={() => setShowTypeModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700, marginBottom:'0.5rem'}}>选择题型</div>
+              {typeOptions.map(opt => (
+                <button
+                  key={opt.type}
+                  className="type-modal-btn"
+                  style={{margin:'0.25rem 0', width:'100%'}}
+                  onClick={() => handleTypeSelect(opt.type)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 新增：分数展示和回顾按钮 */}
         {isFinished && (
