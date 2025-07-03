@@ -503,9 +503,9 @@ export const localQuestions: Question[] = [
   },
   {
       question: "白酒在存储过程中还发生缓慢的化学变化，主要是酒中含有酸，醇，酯，醛等发生氧化还原，____等作用，直到建立新的平衡。",
-      options: ["酯化与水解等作用", "化合", "分解", "缔合"],
+      options: ["酯化与水解", "化合", "分解", "缔合"],
       type: "single",
-      answer: "酯化与水解等作用"
+      answer: "酯化与水解"
   },
   {
       question: "尝酒时，酒进入口腔中味消失慢，当前杯酒样的味还没有完全消失时，又尝下一杯酒样，就会产生后效应；尝酒尝的多了，嗅觉味觉变得迟钝，准确性逐渐降低，甚至变的无知觉，这种现象叫做____。",
@@ -767,7 +767,7 @@ export const localQuestions: Question[] = [
   },
   {
       question: "丁酸的分子式是____。",
-      options: ["CH₃COOH", "CH₃C00C₂H₅", "CH₃(CH₂)₂COOH"],
+      options: ["CH₃COOH", "CH₃COOC₂H₅", "CH₃(CH₂)₂COOH"],
       type: "single",
       answer: "CH₃(CH₂)₂COOH"
   },
@@ -3474,7 +3474,7 @@ export const localQuestions: Question[] = [
   answer: ["刺激感不愉快的味减少", "柔和绵甜增加", "香味烘托出来", "陈厚感增强"]
 },
 {
-  question: "典型的浓香型白酒的风格应是：无色____或微黄____透明，无悬浮物，无沉淀，窖香浓郁，具有以己酸乙酯为主体、纯正协调的复合香气。入口____。",
+  question: "典型的浓香型白酒的风格应是：无色或微黄透明，无悬浮物，无沉淀，窖香浓郁，具有以己酸乙酯为主体、纯正协调的复合香气。入口____。",
   options: ["绵甜爽净", "香味协调", "回味悠长", "尾净爽口"],
   type: "multiple",
   answer: ["绵甜爽净", "香味协调", "回味悠长"]

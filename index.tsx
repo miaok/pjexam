@@ -831,6 +831,16 @@ const App: React.FC = () => {
                             </button>
                           )}
                         </div>
+                        {/* 新增再来一次按钮 */}
+                        <button
+                          className="review-btn"
+                          onClick={() => {
+                            clearProgress();
+                            startQuiz();
+                          }}
+                        >
+                          再来一次
+                        </button>
                       </div>
                     )}
 
