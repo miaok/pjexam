@@ -502,7 +502,7 @@ export const localQuestions: Question[] = [
       answer: "董酒"
   },
   {
-      question: "白酒在存储过程中还发生缓慢的化学变化，主要是酒中含有酸，醇，酯，醛等发生氧化还原，____等作用，直到建立新的平衡。",
+      question: "白酒在存储过程中还发生缓慢的化学变化，主要是酒中含有酸、醇、酯、醛等发生氧化还原，以及____等作用，直到建立新的平衡。",
       options: ["酯化与水解", "化合", "分解", "缔合"],
       type: "single",
       answer: "酯化与水解"
@@ -2141,7 +2141,7 @@ export const localQuestions: Question[] = [
     answer: "错"
 },
 {
-    question: "色谱骨架中复杂成分主要是指白酒中含量大于2-3mg/lOOml的所有成分。",
+    question: "色谱骨架中复杂成分主要是指白酒中含量大于2-3mg/100ml的所有成分。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"
@@ -3036,7 +3036,7 @@ export const localQuestions: Question[] = [
   answer: ["小麦", "高粱"]
 },
 {
-  question: "白酒的微量成分占白酒的l%左右，总的一般可分为____。",
+  question: "白酒的微量成分占白酒的1%左右，总的一般可分为____。",
   options: ["色谱骨架成分", "协调成分", "复杂成分"],
   type: "multiple",
   answer: ["色谱骨架成分", "协调成分", "复杂成分"]

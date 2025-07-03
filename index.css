@@ -219,7 +219,6 @@ body {
     text-align: center;
     color: var(--primary-color);
     font-weight: 500;
-    margin-bottom: 1rem;
     background-color: var(--primary-light);
     padding: 0.5rem;
     border-radius: 0.5rem;
@@ -334,10 +333,6 @@ body {
   transition: all 0.2s ease-in-out;
   display: flex;
   align-items: center;
-}
-
-.option-btn:not(:disabled):hover {
-  /* border-color: var(--primary-color); */
 }
 
 .option-btn.selected {
@@ -650,33 +645,6 @@ body {
   cursor: not-allowed;
 }
 
-.finish-btn {
-    width: 100%;
-    padding: 0.7rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    background-color: var(--primary-light);
-    color: var(--primary-color);
-    border: none;
-    margin-top: 1rem;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-}
-
-[data-theme="dark"] .finish-btn {
-    background-color: var(--subtle-text);
-    color: var(--card-background);
-}
-
-.finish-btn:hover:not(:disabled) {
-  background-color: var(--subtle-text);
-}
-
-[data-theme="dark"] .finish-btn:hover:not(:disabled) {
-    background-color: #64748b;
-}
-
 .final-score-active {
     display: flex;
     flex-direction: row;
@@ -703,7 +671,7 @@ body {
 }
 
 .review-btn {
-    padding: 0.25rem 1.5rem;
+    padding: 0.25rem 0.75rem;
     font-size: 1rem;
     font-weight: 700;
     background-color: transparent;
