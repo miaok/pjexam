@@ -63,10 +63,12 @@ const App: React.FC = () => {
 
   // 退出/返回首页
   const handleExit = () => {
+    clearProgress();
+    hasRestoredRef.current = false;
     setGameState('idle');
     setScore(0);
-    quiz.startQuiz(); // 重置 quiz 状态
-    blind.playAgain(); // 重置品鉴状态
+    quiz.startQuiz();
+    blind.playAgain();
   };
 
   // 开始学习
@@ -123,6 +125,7 @@ const App: React.FC = () => {
             clearProgress={clearProgress}
             setGameState={setGameState}
             setScore={setScore}
+            hasRestoredRef={hasRestoredRef}
           />
         );
       default:

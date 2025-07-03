@@ -25,6 +25,7 @@ interface QuizPageProps {
   clearProgress: () => void;
   setGameState: (state: GameState) => void;
   setScore: (score: number) => void;
+  hasRestoredRef: React.MutableRefObject<boolean>;
 }
 
 const QuizPage: React.FC<QuizPageProps> = ({
@@ -35,6 +36,7 @@ const QuizPage: React.FC<QuizPageProps> = ({
   clearProgress,
   setGameState,
   setScore,
+  hasRestoredRef,
 }) => {
   const { quizMode, isRapidMode } = useSettings();
   const currentQuestion = quiz.questions[quiz.currentQuestionIndex];
@@ -70,7 +72,7 @@ const QuizPage: React.FC<QuizPageProps> = ({
           <p className="question-header">
             {isFinished && quiz.reviewingWrongOnly
               ? `错题 ${quiz.currentWrongQuestionDisplayIndex + 1} / ${quiz.wrongQuestionIndices.length}`
-              : `题${quiz.currentQuestionIndex + 1}/${quiz.questions.length}`
+              : `题 ${quiz.currentQuestionIndex + 1}/${quiz.questions.length}`
             }
           </p>
           <div className="question-meta-right">
@@ -118,7 +120,22 @@ const QuizPage: React.FC<QuizPageProps> = ({
 
         {/* 新增：分数展示和回顾按钮 */}
         {isFinished && (
-          <FinalScorePanel score={score} hasWrongAnswers={quiz.hasWrongAnswers} reviewingWrongOnly={quiz.reviewingWrongOnly} onToggleReviewingWrongOnly={quiz.handleToggleReviewingWrongOnly} onRestart={() => { clearProgress(); setScore(0); quiz.startQuiz(); setGameState('active'); }} />
+          <FinalScorePanel score={score} hasWrongAnswers={quiz.hasWrongAnswers} reviewingWrongOnly={quiz.reviewingWrongOnly} onToggleReviewingWrongOnly={quiz.handleToggleReviewingWrongOnly} onRestart={() => {
+            clearProgress();
+            hasRestoredRef.current = false;
+            setScore(0);
+            setGameState('active');
+            quiz.startQuiz();
+            // 彻底重置 quiz 相关状态
+            quiz.setCurrentQuestionIndex(0);
+            quiz.setUserAnswers([]);
+            quiz.setConfirmedAnswers([]);
+            quiz.setIsCurrentConfirmed(false);
+            quiz.setFlaggedQuestions(new Set());
+            quiz.setReviewingWrongOnly(false);
+            quiz.setWrongQuestionIndices([]);
+            quiz.setCurrentWrongQuestionDisplayIndex(0);
+          }} />
         )}
 
         <h2 className="question-text">{currentQuestion.question}</h2>

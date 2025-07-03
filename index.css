@@ -538,13 +538,13 @@ body {
 }
 
 .answer-sheet-accordion {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease-in-out;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .answer-sheet-accordion.open {
-  grid-template-rows: 1fr;
+  max-height: 800px;
 }
 
 .answer-sheet-accordion > .answer-sheet-content {
@@ -553,8 +553,13 @@ body {
 
 .answer-sheet-content {
     padding-top: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.answer-sheet-accordion.open > .answer-sheet-content {
+  opacity: 1;
+}
 
 .answer-sheet {
     display: flex;
@@ -926,7 +931,7 @@ body {
         padding: 1rem;
     }
     .question-meta {
-        margin-bottom: 0rem;
+        margin-bottom: 0.5rem;
     }
     .timer {
       font-size: 0.9rem;
@@ -991,6 +996,9 @@ body {
     }
     .options-grid {
         gap: 1.25rem;
+    }
+    .answer-sheet-accordion.open {
+        max-height: 1500px;
     }
 }
 
