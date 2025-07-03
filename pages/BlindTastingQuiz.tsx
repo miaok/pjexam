@@ -1,13 +1,5 @@
 import React from 'react';
-import { BaijiuSample } from '../baijiu';
-
-export type BaijiuUserAnswer = {
-    香型: string;
-    酒度: string;
-    总分: string;
-    设备: string[];
-    发酵剂: string[];
-};
+import { BaijiuSample, BaijiuUserAnswer } from '@/utils/types';
 
 export type BlindTastingQuizProps = {
     currentSample: BaijiuSample;

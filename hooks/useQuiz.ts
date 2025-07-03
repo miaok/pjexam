@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo} from 'react';
-import { localQuestions, Question, QuestionType } from '../questions';
-import { getStats, updateStats, addExamRecord } from '../storage';
-import { getQuestionKey } from '../utils';
-import { QuizMode } from '../types';
+import { localQuestions, Question, QuestionType } from '@/questions';
+import { getStats, updateStats, addExamRecord } from '@/utils/storage';
+import { getQuestionKey } from '@/utils';
+import { QuizMode } from '@/utils/types';
 
 const EXAM_DURATION_MINUTES = 10;
 

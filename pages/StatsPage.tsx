@@ -1,9 +1,9 @@
 import React from 'react';
 import { localQuestions, Question } from '../questions';
-import { getStats, getExamRecords } from '../storage';
+import { getStats, getExamRecords } from '../utils/storage';
 
 // 类型定义
-export type StatsPageProps = { onBack: () => void };
+import { StatsPageProps } from '@/utils/types';
 export type StatQuestion = Question & { total: number; wrong: number };
 
 const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {

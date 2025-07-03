@@ -1,9 +1,6 @@
 import React from 'react';
 
-export type BaijiuFieldsSelectorProps = {
-  baijiuFields: Record<string, boolean>;
-  onFieldChange: (field: string, checked: boolean) => void;
-};
+import { BaijiuFieldsSelectorProps } from '@/utils/types';
 
 const BaijiuFieldsSelector: React.FC<BaijiuFieldsSelectorProps> = ({ baijiuFields, onFieldChange }) => (
   <div className="settings-checkbox-container" style={{justifyContent: 'center', marginBottom: '1rem'}}>

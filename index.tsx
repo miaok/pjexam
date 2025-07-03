@@ -5,27 +5,18 @@ import {
   saveProgress,
   loadProgress,
   clearProgress,
-} from './storage';
-import useQuiz from './hooks/useQuiz';
-import useBlindTasting from './hooks/useBlindTasting';
-import { baijiuOptions } from './utils';
-import StatsPage from './pages/StatsPage';
-import BlindTastingQuiz from './pages/BlindTastingQuiz.tsx';
-import QuizPage from './pages/QuizPage';
-import WelcomePage from './pages/WelcomePage';
-import { SettingsProvider, useSettings } from './context/SettingsContext';
+} from '@/utils/storage.ts';
+import useQuiz from '@/hooks/useQuiz';
+import useBlindTasting from '@/hooks/useBlindTasting';
+import { baijiuOptions } from '@/utils';
+import StatsPage from '@/pages/StatsPage';
+import BlindTastingQuiz from '@/pages/BlindTastingQuiz';
+import QuizPage from '@/pages/QuizPage';
+import WelcomePage from '@/pages/WelcomePage';
+import { SettingsProvider, useSettings } from '@/context/SettingsContext';
 
-type GameState = 'idle' | 'active' | 'finished';
-
-type BaijiuUserAnswer = {
-    香型: string;
-    酒度: string;
-    总分: string;
-    设备: string[];
-    发酵剂: string[];
-};
-
-const initialBaijiuAnswer: BaijiuUserAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
+import { GameState } from '@/utils/types.ts';
+import { DEFAULT_BAIJIU_ANSWER as initialBaijiuAnswer, DEFAULT_BAIJIU_FIELDS } from '@/constants';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('idle');
@@ -235,7 +226,7 @@ root.render(
     shuffleOptions: true,
     isRapidMode: true,
     isDarkMode: false,
-    baijiuFields: { 香型: true, 酒度: true, 总分: true, 设备: true, 发酵剂: true }
+    baijiuFields: DEFAULT_BAIJIU_FIELDS
   }}>
     <App />
   </SettingsProvider>

@@ -1,12 +1,5 @@
 
-export type BaijiuSample = {
-    "酒样名称": string;
-    "香型": string;
-    "酒度": number;
-    "总分": number;
-    "设备": string;
-    "发酵剂": string;
-};
+import { BaijiuSample } from './utils/types';
 
 export const baijiuData: BaijiuSample[] = [
     {

@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
-import { QuizMode } from '../types';
-import { clearProgress } from '../storage';
+import { QuizMode, BaijiuFields } from '@/utils/types';
+import { clearProgress } from '@/utils/storage';
+import { DEFAULT_EXAM_COUNTS } from '@/constants';
 
 type QuestionCounts = { boolean: number; single: number; multiple: number };
-type BaijiuFields = { 香型: boolean; 酒度: boolean; 总分: boolean; 设备: boolean; 发酵剂: boolean };
 
 interface SettingsContextProps {
   quizMode: QuizMode;
@@ -24,9 +24,11 @@ interface SettingsContextProps {
 const SettingsContext = createContext<SettingsContextProps | undefined>(undefined);
 
 export const useSettings = () => {
-  const ctx = useContext(SettingsContext);
-  if (!ctx) throw new Error('useSettings must be used within SettingsProvider');
-  return ctx;
+  const context = useContext(SettingsContext);
+  if (!context) {
+    throw new Error('useSettings must be used within a SettingsProvider');
+  }
+  return context;
 };
 
 export const SettingsProvider: React.FC<{
@@ -35,7 +37,7 @@ export const SettingsProvider: React.FC<{
 }> = ({ children, initial }) => {
   const getDefaultQuestionCounts = (mode: QuizMode, maxCounts: QuestionCounts): QuestionCounts => {
     if (mode === 'exam') {
-      return { boolean: 30, single: 30, multiple: 40 };
+      return DEFAULT_EXAM_COUNTS;
     } else {
       return { ...maxCounts };
     }

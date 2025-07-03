@@ -2,13 +2,10 @@ import React from 'react';
 import { QuestionType } from '../questions';
 import { useSettings } from '../context/SettingsContext';
 
+import { QUESTION_TYPE_LABELS } from '../constants';
+
 const getQuestionTypeLabel = (type: QuestionType): string => {
-  switch (type) {
-    case 'single': return '单选';
-    case 'multiple': return '多选';
-    case 'boolean': return '判断';
-    default: return '';
-  }
+  return QUESTION_TYPE_LABELS[type] || '';
 };
 
 const SettingsPanel: React.FC = () => {

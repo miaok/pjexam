@@ -1,15 +1,8 @@
 import { useState } from 'react';
-import { baijiuData, BaijiuSample } from '../baijiu';
-import { getQuestionKey } from '../utils';
-import { updateStats, getStats } from '../storage';
-
-export type BaijiuUserAnswer = {
-  香型: string;
-  酒度: string;
-  总分: string;
-  设备: string[];
-  发酵剂: string[];
-};
+import { baijiuData } from '@/baijiu';
+import { getQuestionKey } from '@/utils';
+import { updateStats, getStats } from '@/utils/storage';
+import { BaijiuUserAnswer, BaijiuSample } from '@/utils/types';
 
 const initialBaijiuAnswer: BaijiuUserAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
 

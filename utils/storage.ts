@@ -1,10 +1,7 @@
 // storage.ts
 
-export const STORAGE_KEYS = {
-  progress: 'pjexam-progress-v1',
-  stats: 'pjexam-stats-v1',
-  examRecords: 'pjexam-exam-records-v1',
-};
+import { STORAGE_KEYS } from '@/constants';
+import { ExamRecord } from '@/utils/types';
 
 export function saveProgress(progress: any) {
   try {
@@ -54,13 +51,6 @@ export function updateStats(key: string, isWrong: boolean) {
 export function clearStats() {
   localStorage.removeItem(STORAGE_KEYS.stats);
 }
-
-export type ExamRecord = {
-  score: number;
-  total: number;
-  duration: number;
-  timestamp: number;
-};
 
 export function getExamRecords(): ExamRecord[] {
   try {
