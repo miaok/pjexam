@@ -72,4 +72,14 @@ export function addExamRecord(record: ExamRecord) {
 export function getQuestionKey(q: { question: string; options: string[] }) {
   // 简单hash：题干+所有选项拼接
   return q.question + '||' + q.options.join('|');
+}
+
+export function clearAllQuizData() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.progress_exam);
+    localStorage.removeItem(STORAGE_KEYS.progress_practice);
+    localStorage.removeItem(STORAGE_KEYS.progress_blind);
+    localStorage.removeItem(STORAGE_KEYS.stats);
+    localStorage.removeItem(STORAGE_KEYS.examRecords);
+  } catch {}
 } 
