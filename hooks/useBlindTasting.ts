@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { baijiuData } from '@/baijiu';
 import { getQuestionKey } from '@/utils';
-import { updateStats, getStats } from '@/utils/storage';
+import { updateStats, getStats, saveProgress, loadProgress } from '@/utils/storage';
 import { BaijiuUserAnswer, BaijiuSample } from '@/utils/types';
 
 const initialBaijiuAnswer: BaijiuUserAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
@@ -16,6 +16,19 @@ export default function useBlindTasting({
   const [baijiuUserAnswer, setBaijiuUserAnswer] = useState<BaijiuUserAnswer>(initialBaijiuAnswer);
   const [isBaijiuAnswerConfirmed, setIsBaijiuAnswerConfirmed] = useState(false);
   const [activeBaijiuFields, setActiveBaijiuFields] = useState(baijiuFields);
+
+  // 自动保存盲品进度
+  useEffect(() => {
+    const progress = loadProgress() || {};
+    saveProgress({
+      ...progress,
+      baijiuQuestions,
+      currentBaijiuIndex,
+      baijiuUserAnswer,
+      isBaijiuAnswerConfirmed,
+      activeBaijiuFields
+    });
+  }, [baijiuQuestions, currentBaijiuIndex, baijiuUserAnswer, isBaijiuAnswerConfirmed, activeBaijiuFields]);
 
   // startBlindTasting
   const startBlindTasting = () => {
@@ -52,10 +65,14 @@ export default function useBlindTasting({
   };
 
   // handleBaijiuScoreAdjust
-  const handleBaijiuScoreAdjust = (direction: 'up' | 'down') => {
+  const handleBaijiuScoreAdjust = (direction: 'up' | 'down' | 'up1' | 'down1') => {
     setBaijiuUserAnswer(prev => {
       const currentScore = parseFloat(prev.总分);
-      const newScore = direction === 'up' ? currentScore + 0.2 : currentScore - 0.2;
+      let newScore = currentScore;
+      if (direction === 'up') newScore += 0.2;
+      else if (direction === 'down') newScore -= 0.2;
+      else if (direction === 'up1') newScore += 1;
+      else if (direction === 'down1') newScore -= 1;
       return { ...prev, 总分: newScore.toFixed(1) };
     });
   };

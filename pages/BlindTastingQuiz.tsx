@@ -9,7 +9,7 @@ export type BlindTastingQuizProps = {
     isBaijiuAnswerConfirmed: boolean;
     activeBaijiuFields: Record<string, boolean>;
     baijiuOptions: Record<string, string[]>;
-    onScoreAdjust: (direction: 'up' | 'down') => void;
+    onScoreAdjust: (direction: 'up' | 'down' | 'up1' | 'down1') => void;
     onSelectChange: (field: '香型' | '酒度', value: string) => void;
     onMultiSelectChange: (field: '设备' | '发酵剂', value: string) => void;
     onAction: () => void;
@@ -78,9 +78,11 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
                     if (field === '总分') {
                         inputControl = (
                             <div className="score-adjuster">
+                                <button onClick={() => onScoreAdjust('down1')} disabled={isBaijiuAnswerConfirmed}>--</button>
                                 <button onClick={() => onScoreAdjust('down')} disabled={isBaijiuAnswerConfirmed}>-</button>
                                 <span>{baijiuUserAnswer.总分}</span>
                                 <button onClick={() => onScoreAdjust('up')} disabled={isBaijiuAnswerConfirmed}>+</button>
+                                <button onClick={() => onScoreAdjust('up1')} disabled={isBaijiuAnswerConfirmed}>++</button>
                             </div>
                         );
                     } else if (field === '设备' || field === '发酵剂') {

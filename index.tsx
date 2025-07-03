@@ -157,10 +157,13 @@ const App: React.FC = () => {
       quiz.setCurrentWrongQuestionDisplayIndex(saved.currentWrongQuestionDisplayIndex ?? 0);
       quiz.setFlaggedQuestions(saved.flaggedQuestions ?? new Set());
       setIsDarkMode(saved.isDarkMode ?? false);
-      blind.setBaijiuQuestions(saved.baijiuQuestions ?? []);
-      blind.setCurrentBaijiuIndex(saved.currentBaijiuIndex ?? 0);
-      blind.setBaijiuUserAnswer(saved.baijiuUserAnswer ?? initialBaijiuAnswer);
-      blind.setIsBaijiuAnswerConfirmed(saved.isBaijiuAnswerConfirmed ?? false);
+      if (saved.baijiuQuestions && saved.baijiuQuestions.length > 0) {
+        blind.setBaijiuQuestions(saved.baijiuQuestions);
+        blind.setCurrentBaijiuIndex(saved.currentBaijiuIndex ?? 0);
+        blind.setBaijiuUserAnswer(saved.baijiuUserAnswer ?? initialBaijiuAnswer);
+        blind.setIsBaijiuAnswerConfirmed(saved.isBaijiuAnswerConfirmed ?? false);
+        if (saved.activeBaijiuFields) blind.setActiveBaijiuFields(saved.activeBaijiuFields);
+      }
       setQuestionCounts(saved.questionCounts ?? {
         boolean: Math.min(30, maxCounts.boolean || 0),
         single: Math.min(30, maxCounts.single || 0),
