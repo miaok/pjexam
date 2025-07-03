@@ -312,14 +312,15 @@ const App: React.FC = () => {
     (Object.keys(groupedQuestions) as QuestionType[]).forEach(type => {
         const count = Math.min(questionCounts[type], groupedQuestions[type]?.length || 0);
         let group = groupedQuestions[type].slice();
-        // 先按统计排序
+        // 只按错题次数排序，错题多的优先，错题次数相同则随机
         group.sort((a, b) => {
             const ka = getQuestionKey(a);
             const kb = getQuestionKey(b);
             const sa = stats[ka] || { total: 0, wrong: 0 };
             const sb = stats[kb] || { total: 0, wrong: 0 };
-            if (sa.total !== sb.total) return sa.total - sb.total;
-            return sb.wrong - sa.wrong;
+            if (sb.wrong !== sa.wrong) return sb.wrong - sa.wrong;
+            // 错题次数相同则随机
+            return Math.random() - 0.5;
         });
         // 只取前count个
         let chosen = group.slice(0, count);
@@ -737,6 +738,12 @@ const App: React.FC = () => {
   const handleBackFromStats = () => {
     setQuizMode('exam');
     setGameState('idle');
+    // 切换到考试模式时，重置题型数量为考试模式默认
+    setQuestionCounts({
+      boolean: Math.min(30, maxCounts.boolean || 0),
+      single: Math.min(30, maxCounts.single || 0),
+      multiple: Math.min(40, maxCounts.multiple || 0),
+    });
   };
 
   const renderContent = () => {
