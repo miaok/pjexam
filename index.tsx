@@ -140,6 +140,12 @@ const App: React.FC = () => {
             onMultiSelectChange={blind.handleBaijiuMultiSelectChange}
             onAction={blind.handleBaijiuAction}
             onExit={handleExit}
+            setBaijiuQuestions={blind.setBaijiuQuestions}
+            setCurrentBaijiuIndex={blind.setCurrentBaijiuIndex}
+            setBaijiuUserAnswer={blind.setBaijiuUserAnswer}
+            setIsBaijiuAnswerConfirmed={blind.setIsBaijiuAnswerConfirmed}
+            setActiveBaijiuFields={blind.setActiveBaijiuFields}
+            startBlindTasting={blind.startBlindTasting}
           />;
         }
         return (
