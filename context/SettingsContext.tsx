@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
 import { QuizMode, BaijiuFields } from '@/utils/types';
-import { clearProgress } from '@/utils/storage';
 import { DEFAULT_EXAM_COUNTS } from '@/constants';
 
 type QuestionCounts = { boolean: number; single: number; multiple: number };
@@ -55,7 +54,6 @@ export const SettingsProvider: React.FC<{
   }, [quizMode, initial.maxCounts]);
 
   const setQuizModeWithClear: typeof setQuizMode = (mode) => {
-    clearProgress();
     setQuizMode(mode);
   };
 

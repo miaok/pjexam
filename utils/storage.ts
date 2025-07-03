@@ -3,15 +3,15 @@
 import { STORAGE_KEYS } from '@/constants';
 import { ExamRecord } from '@/utils/types';
 
-export function saveProgress(progress: any) {
+export function saveProgress(mode: 'exam' | 'practice' | 'blind', progress: any) {
   try {
-    localStorage.setItem(STORAGE_KEYS.progress, JSON.stringify(progress));
+    localStorage.setItem(STORAGE_KEYS[`progress_${mode}`], JSON.stringify(progress));
   } catch {}
 }
 
-export function loadProgress(): any | null {
+export function loadProgress(mode: 'exam' | 'practice' | 'blind'): any | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.progress);
+    const raw = localStorage.getItem(STORAGE_KEYS[`progress_${mode}`]);
     if (!raw) return null;
     const data = JSON.parse(raw);
     // 反序列化 Set
@@ -24,9 +24,9 @@ export function loadProgress(): any | null {
   }
 }
 
-export function clearProgress() {
+export function clearProgress(mode: 'exam' | 'practice' | 'blind') {
   try {
-    localStorage.removeItem(STORAGE_KEYS.progress);
+    localStorage.removeItem(STORAGE_KEYS[`progress_${mode}`]);
   } catch {}
 }
 

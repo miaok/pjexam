@@ -1,6 +1,8 @@
 // 存储相关常量
 export const STORAGE_KEYS = {
-  progress: 'pjexam-progress-v1',
+  progress_exam: 'pjexam-progress-exam-v1',
+  progress_practice: 'pjexam-progress-practice-v1',
+  progress_blind: 'pjexam-progress-blind-v1',
   stats: 'pjexam-stats-v1',
   examRecords: 'pjexam-exam-records-v1',
 };

@@ -16,7 +16,7 @@ import WelcomePage from '@/pages/WelcomePage';
 import { SettingsProvider, useSettings } from '@/context/SettingsContext';
 
 import { GameState } from '@/utils/types.ts';
-import { DEFAULT_BAIJIU_ANSWER as initialBaijiuAnswer, DEFAULT_BAIJIU_FIELDS } from '@/constants';
+import { DEFAULT_BAIJIU_FIELDS } from '@/constants';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('idle');
@@ -35,11 +35,6 @@ const App: React.FC = () => {
     questionCounts,
     shuffleOptions,
     baijiuFields,
-    setIsRapidMode,
-    setIsDarkMode,
-    setQuestionCounts,
-    setShuffleOptions,
-    setBaijiuFields,
     isDarkMode,
     setQuizMode
   } = useSettings();
@@ -63,7 +58,37 @@ const App: React.FC = () => {
 
   // 退出/返回首页
   const handleExit = () => {
-    clearProgress();
+    if ((quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') && gameState !== 'finished') {
+      // 未完成时保存进度
+      const progress = {
+        gameState,
+        quizMode,
+        questions: quiz.questions,
+        currentQuestionIndex: quiz.currentQuestionIndex,
+        userAnswers: quiz.userAnswers,
+        score,
+        isCurrentConfirmed: quiz.isCurrentConfirmed,
+        confirmedAnswers: quiz.confirmedAnswers,
+        isRapidMode,
+        timeLeft: quiz.timeLeft,
+        examStartTimestamp: quiz.examStartTimestamp,
+        reviewingWrongOnly: quiz.reviewingWrongOnly,
+        wrongQuestionIndices: quiz.wrongQuestionIndices,
+        currentWrongQuestionDisplayIndex: quiz.currentWrongQuestionDisplayIndex,
+        flaggedQuestions: Array.from(quiz.flaggedQuestions),
+        isDarkMode,
+        baijiuQuestions: blind.baijiuQuestions,
+        currentBaijiuIndex: blind.currentBaijiuIndex,
+        baijiuUserAnswer: blind.baijiuUserAnswer,
+        isBaijiuAnswerConfirmed: blind.isBaijiuAnswerConfirmed,
+        questionCounts,
+        shuffleOptions,
+        baijiuFields,
+      };
+      saveProgress(quizMode as 'exam' | 'practice' | 'blind', progress);
+    } else if (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') {
+      clearProgress(quizMode as 'exam' | 'practice' | 'blind');
+    }
     hasRestoredRef.current = false;
     setGameState('idle');
     setScore(0);
@@ -73,6 +98,7 @@ const App: React.FC = () => {
 
   // 开始学习
   const handleStart = () => {
+    hasRestoredRef.current = false;
     setGameState('active');
     setScore(0);
     if (quizMode === 'blind') {
@@ -122,7 +148,11 @@ const App: React.FC = () => {
             score={score}
             gameState={gameState}
             handleExit={handleExit}
-            clearProgress={clearProgress}
+            clearProgress={() => {
+              if (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') {
+                clearProgress(quizMode as 'exam' | 'practice' | 'blind');
+              }
+            }}
             setGameState={setGameState}
             setScore={setScore}
             hasRestoredRef={hasRestoredRef}
@@ -140,76 +170,50 @@ const App: React.FC = () => {
   // 首次加载自动恢复进度
   useEffect(() => {
     if (hasRestoredRef.current) return;
-    const saved = loadProgress();
-    if (saved) {
-      setGameState(saved.gameState ?? 'idle');
-      quiz.setQuestions(saved.questions ?? []);
-      quiz.setCurrentQuestionIndex(saved.currentQuestionIndex ?? 0);
-      quiz.setUserAnswers(saved.userAnswers ?? []);
-      setScore(saved.score ?? 0);
-      quiz.setIsCurrentConfirmed(saved.isCurrentConfirmed ?? false);
-      quiz.setConfirmedAnswers(saved.confirmedAnswers ?? []);
-      setIsRapidMode(saved.isRapidMode ?? true);
-      quiz.setTimeLeft(saved.timeLeft ?? null);
-      quiz.setExamStartTimestamp(saved.examStartTimestamp ?? null);
-      quiz.setReviewingWrongOnly(saved.reviewingWrongOnly ?? false);
-      quiz.setWrongQuestionIndices(saved.wrongQuestionIndices ?? []);
-      quiz.setCurrentWrongQuestionDisplayIndex(saved.currentWrongQuestionDisplayIndex ?? 0);
-      quiz.setFlaggedQuestions(saved.flaggedQuestions ?? new Set());
-      setIsDarkMode(saved.isDarkMode ?? false);
-      if (saved.baijiuQuestions && saved.baijiuQuestions.length > 0) {
-        blind.setBaijiuQuestions(saved.baijiuQuestions);
-        blind.setCurrentBaijiuIndex(saved.currentBaijiuIndex ?? 0);
-        blind.setBaijiuUserAnswer(saved.baijiuUserAnswer ?? initialBaijiuAnswer);
-        blind.setIsBaijiuAnswerConfirmed(saved.isBaijiuAnswerConfirmed ?? false);
-        if (saved.activeBaijiuFields) blind.setActiveBaijiuFields(saved.activeBaijiuFields);
+    if (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') {
+      const saved = loadProgress(quizMode as 'exam' | 'practice' | 'blind');
+      if (!saved) {
+        clearProgress(quizMode as 'exam' | 'practice' | 'blind');
+        hasRestoredRef.current = true;
       }
-      setQuestionCounts(saved.questionCounts ?? {
-        boolean: Math.min(30, maxCounts.boolean || 0),
-        single: Math.min(30, maxCounts.single || 0),
-        multiple: Math.min(40, maxCounts.multiple || 0),
-      });
-      setShuffleOptions(saved.shuffleOptions ?? true);
-      setBaijiuFields(saved.baijiuFields ?? {
-        香型: true,
-        酒度: true,
-        总分: true,
-        设备: true,
-        发酵剂: true,
-      });
+    } else {
+      hasRestoredRef.current = true;
     }
-    hasRestoredRef.current = true;
-  }, []);
+  }, [quizMode]);
 
-  // 自动保存进度
+  // 自动保存进度（仅未完成时）
   useEffect(() => {
     if (!hasRestoredRef.current) return;
-    const progress = {
-      gameState,
-      quizMode,
-      questions: quiz.questions,
-      currentQuestionIndex: quiz.currentQuestionIndex,
-      userAnswers: quiz.userAnswers,
-      score,
-      isCurrentConfirmed: quiz.isCurrentConfirmed,
-      confirmedAnswers: quiz.confirmedAnswers,
-      isRapidMode,
-      timeLeft: quiz.timeLeft,
-      examStartTimestamp: quiz.examStartTimestamp,
-      reviewingWrongOnly: quiz.reviewingWrongOnly,
-      wrongQuestionIndices: quiz.wrongQuestionIndices,
-      currentWrongQuestionDisplayIndex: quiz.currentWrongQuestionDisplayIndex,
-      flaggedQuestions: Array.from(quiz.flaggedQuestions),
-      isDarkMode,
-      baijiuQuestions: blind.baijiuQuestions,
-      currentBaijiuIndex: blind.currentBaijiuIndex,
-      baijiuUserAnswer: blind.baijiuUserAnswer,
-      isBaijiuAnswerConfirmed: blind.isBaijiuAnswerConfirmed,
-      questionCounts,
-      shuffleOptions,
-      baijiuFields,
-    };
-    saveProgress(progress);
+    if (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') {
+      if (gameState !== 'finished') {
+        const progress = {
+          gameState,
+          quizMode,
+          questions: quiz.questions,
+          currentQuestionIndex: quiz.currentQuestionIndex,
+          userAnswers: quiz.userAnswers,
+          score,
+          isCurrentConfirmed: quiz.isCurrentConfirmed,
+          confirmedAnswers: quiz.confirmedAnswers,
+          isRapidMode,
+          timeLeft: quiz.timeLeft,
+          examStartTimestamp: quiz.examStartTimestamp,
+          reviewingWrongOnly: quiz.reviewingWrongOnly,
+          wrongQuestionIndices: quiz.wrongQuestionIndices,
+          currentWrongQuestionDisplayIndex: quiz.currentWrongQuestionDisplayIndex,
+          flaggedQuestions: Array.from(quiz.flaggedQuestions),
+          isDarkMode,
+          baijiuQuestions: blind.baijiuQuestions,
+          currentBaijiuIndex: blind.currentBaijiuIndex,
+          baijiuUserAnswer: blind.baijiuUserAnswer,
+          isBaijiuAnswerConfirmed: blind.isBaijiuAnswerConfirmed,
+          questionCounts,
+          shuffleOptions,
+          baijiuFields,
+        };
+        saveProgress(quizMode as 'exam' | 'practice' | 'blind', progress);
+      }
+    }
   }, [gameState, quizMode, quiz.questions, quiz.currentQuestionIndex, quiz.userAnswers, score, quiz.isCurrentConfirmed, quiz.confirmedAnswers, isRapidMode, quiz.timeLeft, quiz.examStartTimestamp, quiz.reviewingWrongOnly, quiz.wrongQuestionIndices, quiz.currentWrongQuestionDisplayIndex, quiz.flaggedQuestions, isDarkMode, blind.baijiuQuestions, blind.currentBaijiuIndex, blind.baijiuUserAnswer, blind.isBaijiuAnswerConfirmed, questionCounts, shuffleOptions, baijiuFields]);
 
   useEffect(() => {
