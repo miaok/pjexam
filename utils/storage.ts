@@ -65,13 +65,12 @@ export function getExamRecords(): ExamRecord[] {
 export function addExamRecord(record: ExamRecord) {
   const records = getExamRecords();
   records.unshift(record);
-  if (records.length > 10) records.length = 10;
   localStorage.setItem(STORAGE_KEYS.examRecords, JSON.stringify(records));
 }
 
 export function getQuestionKey(q: { question: string; options: string[] }) {
-  // 简单hash：题干+所有选项拼接
-  return q.question + '||' + q.options.join('|');
+  // 只用题干作为唯一 key，避免选项顺序影响统计
+  return q.question;
 }
 
 export function clearAllQuizData() {

@@ -292,7 +292,7 @@ export const localQuestions: Question[] = [
       answer: "2,3-丁二醇"
   },
   {
-      question: "在蒸馏过程中，有机酸聚积于____中，若想提高酒中酸量，则应降低摘酒酒度____。",
+      question: "在蒸馏过程中，有机酸聚积于____中，若想提高酒中酸量，则应降低摘酒酒度。",
       options: ["酒头", "酒身", "酒尾"],
       type: "single",
       answer: "酒尾"
@@ -2321,7 +2321,7 @@ export const localQuestions: Question[] = [
     answer: "对"
 },
 {
-    question: "己酸已酯过大时（大于100mg/L）,浓香露头使芝麻香浮香明显，口味较绵甜，也压制焦糊味。",
+    question: "己酸乙酯过大时（大于100mg/L），浓香露头使芝麻香浮香明显，口味较绵甜，也压制焦糊味。",
     options: ["对", "错"],
     type: "boolean",
     answer: "错"

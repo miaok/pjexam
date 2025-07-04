@@ -124,14 +124,7 @@ const QuizPage: React.FC<QuizPageProps> = ({
     setTimeout(() => {
       setShuffleOptions(shuffleOptions); // 恢复原设置
       quiz.startQuiz();
-      quiz.setCurrentQuestionIndex(0);
-      quiz.setUserAnswers([]);
-      quiz.setConfirmedAnswers([]);
-      quiz.setIsCurrentConfirmed(false);
-      quiz.setFlaggedQuestions(new Set());
-      quiz.setReviewingWrongOnly(false);
-      quiz.setWrongQuestionIndices([]);
-      quiz.setCurrentWrongQuestionDisplayIndex(0);
+      // 不再单独 setCurrentQuestionIndex(0) 等，所有进度由 startQuiz 统一初始化
       setShowResumeModal(false);
       setPendingRestore(null);
     }, 0);
@@ -208,15 +201,7 @@ const QuizPage: React.FC<QuizPageProps> = ({
               setScore(0);
               setGameState('active');
               quiz.startQuiz();
-              // 彻底重置 quiz 相关状态
-              quiz.setCurrentQuestionIndex(0);
-              quiz.setUserAnswers([]);
-              quiz.setConfirmedAnswers([]);
-              quiz.setIsCurrentConfirmed(false);
-              quiz.setFlaggedQuestions(new Set());
-              quiz.setReviewingWrongOnly(false);
-              quiz.setWrongQuestionIndices([]);
-              quiz.setCurrentWrongQuestionDisplayIndex(0);
+              // 不再单独 setCurrentQuestionIndex(0) 等，所有进度由 startQuiz 统一初始化
             }} />
           )}
 

@@ -37,11 +37,11 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         </>
       ) : (
         <>
-          <button onClick={() => goToQuestion(currentQuestionIndex - 1)}>上一题</button>
+          <button onClick={() => goToQuestion(currentQuestionIndex - 1)} disabled={currentQuestionIndex === 0}>上一题</button>
           {currentQuestionIndex === questionsLength - 1 ? (
             <button onClick={finishQuiz}>{isPracticeMode ? '结束练习' : '结束考试'}</button>
           ) : (
-            <button onClick={() => goToQuestion(currentQuestionIndex + 1)}>下一题</button>
+            <button onClick={() => goToQuestion(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questionsLength - 1}>下一题</button>
           )}
         </>
       )}
