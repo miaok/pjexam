@@ -1,31 +1,12 @@
 import React from 'react';
-import { localQuestions, Question } from '../questions';
-import { getStats, getExamRecords, clearAllQuizData } from '../utils/storage';
+import { Question } from '../questions';
+import { getExamRecords, clearAllQuizData } from '../utils/storage';
 
 // 类型定义
 import { StatsPageProps } from '@/utils/types';
 export type StatQuestion = Question & { total: number; wrong: number };
 
 const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {
-  // 题目统计
-  const stats = getStats();
-  // 题型分组
-  // const single: StatQuestion[] = [];
-  // const multiple: StatQuestion[] = [];
-  // const boolean: StatQuestion[] = [];
-  // 题库遍历
-  // localQuestions.forEach(q => {
-  //   const key = q.question + '||' + q.options.join('|');
-  //   const s = stats[key] || { total: 0, wrong: 0 };
-  //   // 只统计考试模式下做过的题，且未做题（total为0）不计入
-  //   if (s.total > 0) {
-  //     if (q.type === 'single') single.push({ ...q, ...s });
-  //     else if (q.type === 'multiple') multiple.push({ ...q, ...s });
-  //     else if (q.type === 'boolean') boolean.push({ ...q, ...s });
-  //   }
-  // });
-  // 排序取前10
-  // const top10 = (arr: StatQuestion[]) => arr.filter(x => x.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 10);
   // 考试记录
   const examRecords = getExamRecords();
   // 时间格式化
@@ -34,14 +15,6 @@ const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {
     return d.toLocaleString();
   };
   const fmtSec = (s: number) => `${Math.floor(s/60)}分${s%60}秒`;
-
-  // 手风琴展开状态
-  // const [openType, setOpenType] = React.useState<'single'|'multiple'|'boolean'|null>('single');
-  // const accordionList = [
-  //   { type: 'single', label: '单选错题TOP10', data: top10(single) },
-  //   { type: 'multiple', label: '多选错题TOP10', data: top10(multiple) },
-  //   { type: 'boolean', label: '判断错题TOP10', data: top10(boolean) },
-  // ];
 
   const [showClearModal, setShowClearModal] = React.useState(false);
   const handleClear = () => {
@@ -58,14 +31,14 @@ const StatsPage: React.FC<StatsPageProps> = ({ onBack }) => {
       {showClearModal && (
         <div className="modal-mask" style={{zIndex:1000}}>
           <div className="modal-content" style={{maxWidth:340, margin:'10% auto', textAlign:'center'}}>
-            <div style={{fontWeight:700, marginBottom:'1rem'}}>确定要清除所有答题相关数据吗？此操作不可恢复！</div>
+            <div style={{fontWeight:700, marginBottom:'1rem'}}>确定要清除所有答题相关数据吗？建议页面出现异常时使用。</div>
             <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={handleClear}>确认清除</button>
             <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={() => setShowClearModal(false)}>取消</button>
           </div>
         </div>
       )}
       <div className="stats-section">
-        <h2>考试记录（最新10次）</h2>
+        <h2>考试记录</h2>
         {examRecords.length === 0 ? <p>暂无数据</p> : (
           <table className="stats-table">
             <thead><tr><th>分数</th><th>总题数</th><th>用时</th><th>考试时间</th></tr></thead>
