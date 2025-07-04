@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo} from 'react';
-import { localQuestions, Question, QuestionType } from '@/questions';
-import { getStats, updateStats, addExamRecord } from '@/utils/storage';
+import { localQuestions, Question } from '@/questions';
+import { getStats, updateStats, addExamRecord, clearProgress } from '@/utils/storage';
 import { getQuestionKey } from '@/utils';
-import { QuizMode } from '@/utils/types';
+import { QuizMode, QuestionType } from '@/utils/types';
 
 const EXAM_DURATION_MINUTES = 10;
 
@@ -188,6 +188,9 @@ export default function useQuiz({
         duration: used,
         timestamp: Date.now(),
       });
+    }
+    if (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind') {
+      clearProgress(quizMode);
     }
     if (onQuizFinish) onQuizFinish(finalScore, true);
   }, [questions, userAnswers, quizMode, timeLeft, onQuizFinish]);

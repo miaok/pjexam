@@ -1,7 +1,8 @@
 import React from 'react';
 import { BaijiuSample, BaijiuUserAnswer } from '@/utils/types';
-import { loadProgress, clearProgress } from '../utils/storage';
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
+import ProgressManager from '@/components/ProgressManager';
+import { clearProgress } from '@/utils/storage';
 
 export type BlindTastingQuizProps = {
     currentSample: BaijiuSample;
@@ -44,66 +45,6 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
     setActiveBaijiuFields,
     startBlindTasting
 }) => {
-    // 进度弹窗逻辑
-    const [showResumeModal, setShowResumeModal] = useState(false);
-    const [pendingRestore, setPendingRestore] = useState<any>(null);
-    const [hasRestored, setHasRestored] = useState(false);
-    //const initialBaijiuAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
-    const isUserAnswered = (ans: any) =>
-      ans &&
-      (ans.香型 !== '' ||
-       ans.酒度 !== '' ||
-       ans.总分 !== '92.0' ||
-       (Array.isArray(ans.设备) && ans.设备.length > 0) ||
-       (Array.isArray(ans.发酵剂) && ans.发酵剂.length > 0)
-      );
-
-    useEffect(() => {
-        if (hasRestored) return;
-        const saved = loadProgress('blind');
-        // 判断是否为有效进度
-        const hasValidProgress =
-            saved &&
-            saved.gameState !== 'finished' &&
-            (
-                (typeof saved.currentBaijiuIndex === 'number' && saved.currentBaijiuIndex > 0)
-                || isUserAnswered(saved.baijiuUserAnswer)
-            );
-        if (hasValidProgress) {
-            setShowResumeModal(true);
-            setPendingRestore(saved);
-            return;
-        }
-        setHasRestored(true);
-    }, [hasRestored]);
-
-    // 恢复进度
-    const handleResume = () => {
-        if (pendingRestore) {
-            if (setBaijiuQuestions) setBaijiuQuestions(pendingRestore.baijiuQuestions ?? []);
-            if (setCurrentBaijiuIndex) setCurrentBaijiuIndex(pendingRestore.currentBaijiuIndex ?? 0);
-            if (setBaijiuUserAnswer) setBaijiuUserAnswer(pendingRestore.baijiuUserAnswer ?? {});
-            if (setIsBaijiuAnswerConfirmed) setIsBaijiuAnswerConfirmed(pendingRestore.isBaijiuAnswerConfirmed ?? false);
-            if (setActiveBaijiuFields && pendingRestore.activeBaijiuFields) setActiveBaijiuFields(pendingRestore.activeBaijiuFields);
-            setHasRestored(true);
-            setShowResumeModal(false);
-            setPendingRestore(null);
-        }
-    };
-
-    // 重新开始
-    const handleRestart = () => {
-        clearProgress('blind');
-        if (startBlindTasting) startBlindTasting();
-        setHasRestored(true);
-        setShowResumeModal(false);
-        setPendingRestore(null);
-    };
-
-    if (Object.values(activeBaijiuFields).every(v => !v)) {
-        return <div style={{textAlign: 'center', marginTop: '2rem', color: '#c00', fontSize: '1.2rem'}}>请至少选择一个品鉴项</div>;
-    }
-
     const checkAnswer = (field: keyof BaijiuUserAnswer): 'correct' | 'incorrect' | 'unanswered' => {
         if (!isBaijiuAnswerConfirmed) return 'unanswered';
         const userAnswer = baijiuUserAnswer[field];
@@ -131,18 +72,32 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
 
     const isFinished = currentIndex === total - 1 && isBaijiuAnswerConfirmed;
 
+    const hasRestoredRef = useRef(false);
+
+    if (isFinished) {
+        clearProgress('blind');
+    }
+
     return (
         <div className="blind-tasting-container">
-            {showResumeModal && (
-                <div className="modal-mask" style={{zIndex:1000}}>
-                    <div className="modal-content" style={{maxWidth:360, margin:'10% auto', textAlign:'center'}}>
-                        <div style={{fontWeight:700, marginBottom:'1rem'}}>检测到有未完成的品鉴进度，是否继续？</div>
-                        <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={handleResume}>继续答题</button>
-                        <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={handleRestart}>重新开始</button>
-                    </div>
-                </div>
-            )}
-            <div style={showResumeModal ? { pointerEvents: 'none', opacity: 0.4 } : {}}>
+            <ProgressManager
+                quizMode={'blind'}
+                gameState={'active'}
+                hasRestoredRef={hasRestoredRef}
+                onResume={(progress: any) => {
+                    if (setBaijiuQuestions) setBaijiuQuestions(progress.baijiuQuestions ?? []);
+                    if (setCurrentBaijiuIndex) setCurrentBaijiuIndex(progress.currentBaijiuIndex ?? 0);
+                    if (setBaijiuUserAnswer) setBaijiuUserAnswer(progress.baijiuUserAnswer ?? {});
+                    if (setIsBaijiuAnswerConfirmed) setIsBaijiuAnswerConfirmed(progress.isBaijiuAnswerConfirmed ?? false);
+                    if (setActiveBaijiuFields && progress.activeBaijiuFields) setActiveBaijiuFields(progress.activeBaijiuFields);
+                    hasRestoredRef.current = true;
+                }}
+                onRestart={() => {
+                    hasRestoredRef.current = true;
+                    if (startBlindTasting) startBlindTasting();
+                }}
+            />
+            <div>
                 <div className="question-meta">
                     <p className="question-header">
                         {currentIndex + 1}/{total}

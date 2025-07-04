@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import OptionsGrid from '../components/OptionsGrid';
-import NavigationControls from '../components/NavigationControls';
-import AnswerSheet from '../components/AnswerSheet';
-import FinalScorePanel from '../components/FinalScorePanel';
-import { getCorrectAnswerText, formatTime } from '../utils';
-import { loadProgress } from '../utils/storage';
-import { GameState } from '../utils/types';
-import type { QuestionType } from '../utils/types';
-import { UseQuizReturn } from '../hooks/useQuiz';
-import { useSettings } from '../context/SettingsContext';
+import OptionsGrid from '@/components/OptionsGrid';
+import NavigationControls from '@/components/NavigationControls';
+import AnswerSheet from '@/components/AnswerSheet';
+import FinalScorePanel from '@/components/FinalScorePanel';
+import { getCorrectAnswerText, formatTime } from '@/utils';
+import { GameState } from '@/utils/types';
+import type { QuestionType } from '@/utils/types';
+import { UseQuizReturn } from '@/hooks/useQuiz';
+import { useSettings } from '@/context/SettingsContext';
+import ProgressManager from '@/components/ProgressManager';
 
 const getQuestionTypeLabel = (type: QuestionType) => {
     switch (type) {
@@ -67,82 +67,13 @@ const QuizPage: React.FC<QuizPageProps> = ({
     setShowTypeModal(false);
   };
 
-  const [showResumeModal, setShowResumeModal] = useState(false);
-  const [pendingRestore, setPendingRestore] = useState<any>(null);
-
   useEffect(() => {
-    if (gameState !== 'active') return;
-    if (!hasRestoredRef.current && (quizMode === 'exam' || quizMode === 'practice' || quizMode === 'blind')) {
-      const saved = loadProgress(quizMode);
-      // 判断是否为有效进度
-      const hasValidProgress =
-        saved &&
-        saved.gameState !== 'finished' &&
-        (
-          (Array.isArray(saved.userAnswers) && saved.userAnswers.some((ans: any) => ans !== null && ans !== undefined && (Array.isArray(ans) ? ans.length > 0 : true)))
-          || (saved.currentQuestionIndex && saved.currentQuestionIndex > 0)
-          || (Array.isArray(saved.confirmedAnswers) && saved.confirmedAnswers.some(Boolean))
-        );
-      if (hasValidProgress) {
-        setShowResumeModal(true);
-        setPendingRestore(saved);
-        return;
-      }
-      hasRestoredRef.current = true;
-    }
-  }, [quizMode, gameState]);
-
-  // 恢复进度
-  const handleResume = () => {
-    if (pendingRestore) {
-      quiz.setQuestions(pendingRestore.questions ?? []);
-      quiz.setCurrentQuestionIndex(pendingRestore.currentQuestionIndex ?? 0);
-      quiz.setUserAnswers(pendingRestore.userAnswers ?? []);
-      setScore(pendingRestore.score ?? 0);
-      quiz.setIsCurrentConfirmed(pendingRestore.isCurrentConfirmed ?? false);
-      quiz.setConfirmedAnswers(pendingRestore.confirmedAnswers ?? []);
-      quiz.setFlaggedQuestions(pendingRestore.flaggedQuestions ?? new Set());
-      quiz.setReviewingWrongOnly(pendingRestore.reviewingWrongOnly ?? false);
-      quiz.setWrongQuestionIndices(pendingRestore.wrongQuestionIndices ?? []);
-      quiz.setCurrentWrongQuestionDisplayIndex(pendingRestore.currentWrongQuestionDisplayIndex ?? 0);
-      if (typeof quiz.setTimeLeft === 'function') quiz.setTimeLeft(pendingRestore.timeLeft ?? null);
-      if (typeof quiz.setExamStartTimestamp === 'function') quiz.setExamStartTimestamp(pendingRestore.examStartTimestamp ?? null);
-      hasRestoredRef.current = true;
-      setShowResumeModal(false);
-      setPendingRestore(null);
-      setGameState(pendingRestore.gameState ?? 'active');
-    }
-  };
-
-  // 重新开始
-  const handleRestart = () => {
-    clearProgress();
-    hasRestoredRef.current = true;
-    setScore(0);
-    setGameState('active');
-    // 关键：强制触发题目集重新生成
-    setShuffleOptions(!shuffleOptions);
-    setTimeout(() => {
-      setShuffleOptions(shuffleOptions); // 恢复原设置
-      quiz.startQuiz();
-      // 不再单独 setCurrentQuestionIndex(0) 等，所有进度由 startQuiz 统一初始化
-      setShowResumeModal(false);
-      setPendingRestore(null);
-    }, 0);
-  };
+    quiz.startQuiz();
+  }, [shuffleOptions]);
 
   return (
     <div className="quiz-layout">
-      {showResumeModal && (
-        <div className="modal-mask" style={{zIndex:1000}}>
-          <div className="modal-content" style={{maxWidth:360, margin:'10% auto', textAlign:'center'}}>
-            <div style={{fontWeight:700, marginBottom:'1rem'}}>检测到有未完成的答题进度，是否继续？</div>
-            <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={handleResume}>继续答题</button>
-            <button className="type-modal-btn" style={{margin:'0.5rem', width:'80%'}} onClick={handleRestart}>重新开始</button>
-          </div>
-        </div>
-      )}
-      <div style={showResumeModal ? { pointerEvents: 'none', opacity: 0.4 } : {}}>
+      <div>
         <div className="main-content">
           <div className="question-meta">
             <p className="question-header">
@@ -193,7 +124,6 @@ const QuizPage: React.FC<QuizPageProps> = ({
               </div>
             </div>
           )}
-
           {/* 新增：分数展示和回顾按钮 */}
           {isFinished && (
             <FinalScorePanel score={score} hasWrongAnswers={quiz.hasWrongAnswers} reviewingWrongOnly={quiz.reviewingWrongOnly} onToggleReviewingWrongOnly={quiz.handleToggleReviewingWrongOnly} onRestart={() => {
@@ -201,11 +131,9 @@ const QuizPage: React.FC<QuizPageProps> = ({
               hasRestoredRef.current = false;
               setScore(0);
               setGameState('active');
-              quiz.startQuiz();
-              // 不再单独 setCurrentQuestionIndex(0) 等，所有进度由 startQuiz 统一初始化
+              setShuffleOptions(!shuffleOptions);
             }} />
           )}
-
           <h2 className="question-text">{currentQuestion.question}</h2>
           <OptionsGrid
             options={currentQuestion.options}
@@ -216,11 +144,9 @@ const QuizPage: React.FC<QuizPageProps> = ({
             onSelect={quiz.handleSelectAnswer}
             disabled={isFinished || isPracticeAndConfirmed}
           />
-
           {shouldShowFeedback && (
             <div className="feedback-text">正确答案: {getCorrectAnswerText(currentQuestion)}</div>
           )}
-
           <NavigationControls
             reviewingWrongOnly={quiz.reviewingWrongOnly}
             currentWrongQuestionDisplayIndex={quiz.currentWrongQuestionDisplayIndex}
@@ -240,7 +166,6 @@ const QuizPage: React.FC<QuizPageProps> = ({
             finishQuiz={quiz.finishQuiz}
           />
         </div>
-
         <div className="sidebar-content">
           <AnswerSheet 
             total={quiz.questions.length}
@@ -256,6 +181,34 @@ const QuizPage: React.FC<QuizPageProps> = ({
           />
         </div>
       </div>
+      <ProgressManager
+        quizMode={quizMode}
+        gameState={gameState}
+        hasRestoredRef={hasRestoredRef}
+        onResume={(progress: any) => {
+          quiz.setQuestions(progress.questions ?? []);
+          quiz.setCurrentQuestionIndex(progress.currentQuestionIndex ?? 0);
+          quiz.setUserAnswers(progress.userAnswers ?? []);
+          setScore(progress.score ?? 0);
+          quiz.setIsCurrentConfirmed(progress.isCurrentConfirmed ?? false);
+          quiz.setConfirmedAnswers(progress.confirmedAnswers ?? []);
+          quiz.setFlaggedQuestions(progress.flaggedQuestions ?? new Set());
+          quiz.setReviewingWrongOnly(progress.reviewingWrongOnly ?? false);
+          quiz.setWrongQuestionIndices(progress.wrongQuestionIndices ?? []);
+          quiz.setCurrentWrongQuestionDisplayIndex(progress.currentWrongQuestionDisplayIndex ?? 0);
+          if (typeof quiz.setTimeLeft === 'function') quiz.setTimeLeft(progress.timeLeft ?? null);
+          if (typeof quiz.setExamStartTimestamp === 'function') quiz.setExamStartTimestamp(progress.examStartTimestamp ?? null);
+          hasRestoredRef.current = true;
+          setGameState(progress.gameState ?? 'active');
+        }}
+        onRestart={() => {
+          clearProgress();
+          hasRestoredRef.current = true;
+          setScore(0);
+          setGameState('active');
+          setShuffleOptions(!shuffleOptions);
+        }}
+      />
     </div>
   );
 };
