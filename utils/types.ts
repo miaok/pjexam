@@ -1,5 +1,6 @@
 export type GameState = 'idle' | 'active' | 'finished';
 export type QuizMode = 'exam' | 'practice' | 'blind' | 'stats';
+export type QuestionType = 'single' | 'multiple' | 'boolean';
 
 // 白酒品鉴答案类型
 export type BaijiuUserAnswer = {

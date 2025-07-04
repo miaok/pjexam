@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { QuizMode, BaijiuFields } from '@/utils/types';
 import { DEFAULT_EXAM_COUNTS } from '@/constants';
+import type { QuestionType } from '../utils/types';
 
 type QuestionCounts = { boolean: number; single: number; multiple: number };
 

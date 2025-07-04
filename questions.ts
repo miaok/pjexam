@@ -1,6 +1,5 @@
 
-export type QuestionType = 'single' | 'multiple' | 'boolean';
-
+import type { QuestionType } from './utils/types';
 export type Question = {
   question: string;
   type: QuestionType;

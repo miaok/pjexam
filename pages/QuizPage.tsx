@@ -6,10 +6,11 @@ import FinalScorePanel from '../components/FinalScorePanel';
 import { getCorrectAnswerText, formatTime } from '../utils';
 import { loadProgress } from '../utils/storage';
 import { GameState } from '../utils/types';
+import type { QuestionType } from '../utils/types';
 import { UseQuizReturn } from '../hooks/useQuiz';
 import { useSettings } from '../context/SettingsContext';
 
-const getQuestionTypeLabel = (type: any) => {
+const getQuestionTypeLabel = (type: QuestionType) => {
     switch (type) {
         case 'single': return '单选';
         case 'multiple': return '多选';

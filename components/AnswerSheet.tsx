@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useLayoutEffect, useRef, useEffect } from 'react';
-import { Question} from '../questions';
+import { Question } from '../questions';
 
 // 判断答案是否正确
 const isCorrectUtil = (question: Question, userAnswer: string | string[] | null): boolean => {
