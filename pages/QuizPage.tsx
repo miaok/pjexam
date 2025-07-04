@@ -26,7 +26,7 @@ interface QuizPageProps {
   clearProgress: () => void;
   setGameState: (state: GameState) => void;
   setScore: (score: number) => void;
-  hasRestoredRef: React.MutableRefObject<boolean>;
+  hasRestoredRef: React.RefObject<boolean>;
 }
 
 const QuizPage: React.FC<QuizPageProps> = ({
@@ -146,8 +146,8 @@ const QuizPage: React.FC<QuizPageProps> = ({
           <div className="question-meta">
             <p className="question-header">
               {isFinished && quiz.reviewingWrongOnly
-                ? `错题 ${quiz.currentWrongQuestionDisplayIndex + 1} / ${quiz.wrongQuestionIndices.length}`
-                : `题 ${quiz.currentQuestionIndex + 1}/${quiz.questions.length}`
+                ? `错${quiz.currentWrongQuestionDisplayIndex + 1}/${quiz.wrongQuestionIndices.length}`
+                : `${quiz.currentQuestionIndex + 1}/${quiz.questions.length}`
               }
             </p>
             <div className="question-meta-right">
