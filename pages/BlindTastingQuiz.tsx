@@ -2,12 +2,13 @@ import React from 'react';
 import { BaijiuSample, BaijiuUserAnswer } from '@/utils/types';
 import { useRef } from 'react';
 import ProgressManager from '@/components/ProgressManager';
-import { clearProgress } from '@/utils/storage';
+import { clearProgress, saveProgress } from '@/utils/storage';
 
 export type BlindTastingQuizProps = {
     currentSample: BaijiuSample;
     currentIndex: number;
     total: number;
+    baijiuQuestions: BaijiuSample[];
     baijiuUserAnswer: BaijiuUserAnswer;
     isBaijiuAnswerConfirmed: boolean;
     activeBaijiuFields: Record<string, boolean>;
@@ -29,6 +30,7 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
     currentSample,
     currentIndex,
     total,
+    baijiuQuestions,
     baijiuUserAnswer,
     isBaijiuAnswerConfirmed,
     activeBaijiuFields,
@@ -78,6 +80,26 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
         clearProgress('blind');
     }
 
+    const saveBlindProgress = () => {
+        saveProgress('blind', {
+            baijiuQuestions,
+            currentBaijiuIndex: currentIndex,
+            baijiuUserAnswer,
+            isBaijiuAnswerConfirmed,
+            activeBaijiuFields,
+        });
+    };
+
+    const handleExit = () => {
+        saveBlindProgress();
+        onExit();
+    };
+
+    const handleAction = () => {
+        onAction();
+        saveBlindProgress();
+    };
+
     return (
         <div className="blind-tasting-container">
             <ProgressManager
@@ -102,7 +124,7 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
                     <p className="question-header">
                         {currentIndex + 1}/{total}
                     </p>
-                    <button className="navigation-controls-exit-btn" onClick={onExit}>
+                    <button className="navigation-controls-exit-btn" onClick={handleExit}>
                         退出
                     </button>
                 </div>
@@ -178,7 +200,7 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
                         );
                     })}
                 </div>
-                <button className="action-btn" onClick={onAction} style={{marginTop: '1rem'}}>
+                <button className="action-btn" onClick={handleAction} style={{marginTop: '1rem'}}>
                     {isBaijiuAnswerConfirmed ? (isFinished ? '完成' : '下一题') : '确认答案'}
                 </button>
             </div>
