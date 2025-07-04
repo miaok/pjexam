@@ -946,7 +946,7 @@ body {
     }
     .form-row {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
+        gap: 0rem;
     }
     .form-row label {
         text-align: left;

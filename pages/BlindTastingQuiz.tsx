@@ -48,7 +48,7 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [pendingRestore, setPendingRestore] = useState<any>(null);
     const [hasRestored, setHasRestored] = useState(false);
-    const initialBaijiuAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
+    //const initialBaijiuAnswer = { 香型: '', 酒度: '', 总分: '92.0', 设备: [], 发酵剂: [] };
     const isUserAnswered = (ans: any) =>
       ans &&
       (ans.香型 !== '' ||
@@ -145,7 +145,7 @@ const BlindTastingQuiz: React.FC<BlindTastingQuizProps> = ({
             <div style={showResumeModal ? { pointerEvents: 'none', opacity: 0.4 } : {}}>
                 <div className="question-meta">
                     <p className="question-header">
-                        品鉴 {currentIndex + 1} / {total}
+                        {currentIndex + 1}/{total}
                     </p>
                     <button className="navigation-controls-exit-btn" onClick={onExit}>
                         退出
